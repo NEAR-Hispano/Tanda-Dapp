@@ -1,0 +1,10 @@
+{
+  "name": "NearTest",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "create-near-app": "^2.0.0",
+    "near-cli": "^2.1.1"
+  }
+}
