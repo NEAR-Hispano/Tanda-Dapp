@@ -2,15 +2,13 @@ import { Context, logging, storage } from 'near-sdk-as'
 import { Tanda, Periodo } from "./tanda";
 
 const account_id = "aklassen.testnet";
+const dev = "dev-1629865672477-10324725647834";
 
-export function setTanda(nombreTanda: string, integrantes: u64, monto: f64, periodo: Periodo): void{
+export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): void{
 
-  let tanda = new Tanda();
+  let tanda = new Tanda(nombreTanda, integrantes, monto);
 
-  tanda.nombre = nombreTanda;
-  tanda.integrantes = integrantes;
-  tanda.monto = monto;
-  tanda.periodo = Periodo;
+  //tanda.periodo = Periodo;
 
   logging.log(
     'Creando tanda"' 
@@ -18,11 +16,10 @@ export function setTanda(nombreTanda: string, integrantes: u64, monto: f64, peri
       + '" en la cuenta "' 
       + account_id
       + '" con "'
-      + integrantes
+      + "8"
       + '" integrantes, por "'
-      + monto
+      + "3.0"
       + '" cada "'
-      + periodo
       + '"'
   )
 
