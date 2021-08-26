@@ -1,8 +1,8 @@
+@nearBindgen
 export class Tanda {
     nombre: string;
     num_integrantes: u64;
     monto: u64;
-    periodo: Periodo;
     
     constructor(nombre: string, num_integrantes: u64, monto: u64){
         this.nombre = nombre;

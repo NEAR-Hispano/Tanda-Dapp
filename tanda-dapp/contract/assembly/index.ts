@@ -1,14 +1,13 @@
-import { Context, logging, storage } from 'near-sdk-as'
-import { Tanda, Periodo } from "./tanda";
+import { Context, logging, storage, PersistentVector } from 'near-sdk-as'
+import { Tanda, Periodo } from "./model";
 
 const account_id = "aklassen.testnet";
-const dev = "dev-1629865672477-10324725647834";
+
+let tandas = new PersistentVector<Tanda>("t");
 
 export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): void{
 
   let tanda = new Tanda(nombreTanda, integrantes, monto);
-
-  //tanda.periodo = Periodo;
 
   logging.log(
     'Creando tanda"' 
@@ -16,16 +15,19 @@ export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): voi
       + '" en la cuenta "' 
       + account_id
       + '" con "'
-      + "8"
+      + integrantes.toString()
       + '" integrantes, por "'
-      + "3.0"
-      + '" cada "'
-      + '"'
+      + monto.toString()
   )
-
-  storage.set<Tanda>(account_id, tanda)
+  tandas.push(tanda);
 }
 
-export function getTanda(): Tanda | null {
-  return storage.get<Tanda>(account_id)
+export function getTandas(): Array<Tanda>{
+  let numTandas = min(10, tandas.length);
+  let startIndex = tandas.length - numTandas;
+  let result = new Array<Tanda>(numTandas);
+  for (let i = 0; i < numTandas; i++) {
+    result[i] = tandas[i + startIndex];
+  }
+  return result;
 }
