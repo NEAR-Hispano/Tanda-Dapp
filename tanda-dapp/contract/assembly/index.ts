@@ -1,5 +1,5 @@
 import { logging } from 'near-sdk-as'
-import { tandas, Tanda} from "../models/tanda";
+import { tandas, keys, Tanda} from "../models/tanda";
 
 const account_id = "";
 
@@ -21,26 +21,20 @@ export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): voi
       + '" cada "'
       + '"'
   )
-  tandas.push(tanda);
+  tandas.set(tanda.id, tanda);
+  keys.push(tanda.id);
 }
 
-export function getTandas(): Array<Tanda>{
-  let numTandas = min(10, tandas.length);
-  let startIndex = tandas.length - numTandas;
-  let result = new Array<Tanda>(numTandas);
+export function getTandas(): Array<Tanda | null>{
+  let numTandas = min(10, keys.length);
+  let startIndex = keys.length - numTandas;
+  let result = new Array<Tanda | null>(numTandas);
   for (let i = 0; i < numTandas; i++) {
-    result[i] = tandas[i + startIndex];
+    result[i] = tandas.get(keys[i + startIndex]);
   }
   return result;
 }
 
-export function getTanda(nombreTanda: string): Tanda | null {
-  let numTandas = min(10, tandas.length);
-  const startIndex = tandas.length - numTandas;
-  for (let i = 0; i < numTandas; i++) {
-    if (tandas[i + startIndex].nombre == nombreTanda) {
-      return tandas[i + startIndex];
-    }
-  }
-  return null;
+export function getTanda(key: string): Tanda | null {
+  return tandas.get(key);
 }

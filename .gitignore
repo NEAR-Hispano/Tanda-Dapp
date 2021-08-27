@@ -1,5 +1,5 @@
 /node_modules
 /contract/node_modules
-/.cache/
+/tanda-dapp/.cache/
 /tanda-dapp/contract/build
 /tanda-dapp/dist
