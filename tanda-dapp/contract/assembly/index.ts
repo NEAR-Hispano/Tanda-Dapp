@@ -1,40 +1,46 @@
-/*
- * This is an example of an AssemblyScript smart contract with two simple,
- * symmetric functions:
- *
- * 1. setGreeting: accepts a greeting, such as "howdy", and records it for the
- *    user (account_id) who sent the request
- * 2. getGreeting: accepts an account_id and returns the greeting saved for it,
- *    defaulting to "Hello"
- *
- * Learn more about writing NEAR smart contracts with AssemblyScript:
- * https://docs.near.org/docs/develop/contracts/as/intro
- *
- */
+import { logging } from 'near-sdk-as'
+import { tandas, Tanda} from "../models/tanda";
 
-import { Context, logging, storage } from 'near-sdk-as'
+const account_id = "";
 
-const DEFAULT_MESSAGE = 'Hello'
+export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): void{
 
-// Exported functions will be part of the public interface for your smart contract.
-// Feel free to extract behavior to non-exported functions!
-export function getGreeting(accountId: string): string | null {
-  // This uses raw `storage.get`, a low-level way to interact with on-chain
-  // storage for simple contracts.
-  // If you have something more complex, check out persistent collections:
-  // https://docs.near.org/docs/concepts/data-storage#assemblyscript-collection-types
-  return storage.get<string>(accountId, DEFAULT_MESSAGE)
+  let tanda = new Tanda(nombreTanda, integrantes, monto);
+
+  //tanda.periodo = Periodo;
+
+  logging.log(
+    'Creando tanda"' 
+      + nombreTanda 
+      + '" en la cuenta "' 
+      + account_id
+      + '" con "'
+      + "8"
+      + '" integrantes, por "'
+      + "3.0"
+      + '" cada "'
+      + '"'
+  )
+  tandas.push(tanda);
 }
 
-export function setGreeting(message: string): void {
-  const account_id = Context.sender
+export function getTandas(): Array<Tanda>{
+  let numTandas = min(10, tandas.length);
+  let startIndex = tandas.length - numTandas;
+  let result = new Array<Tanda>(numTandas);
+  for (let i = 0; i < numTandas; i++) {
+    result[i] = tandas[i + startIndex];
+  }
+  return result;
+}
 
-  // Use logging.log to record logs permanently to the blockchain!
-  logging.log(
-    // String interpolation (`like ${this}`) is a work in progress:
-    // https://github.com/AssemblyScript/assemblyscript/pull/1115
-    'Saving greeting "' + message + '" for account "' + account_id + '"'
-  )
-
-  storage.set(account_id, message)
+export function getTanda(nombreTanda: string): Tanda | null {
+  let numTandas = min(10, tandas.length);
+  const startIndex = tandas.length - numTandas;
+  for (let i = 0; i < numTandas; i++) {
+    if (tandas[i + startIndex].nombre == nombreTanda) {
+      return tandas[i + startIndex];
+    }
+  }
+  return null;
 }
