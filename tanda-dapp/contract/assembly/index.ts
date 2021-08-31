@@ -1,7 +1,7 @@
 import { logging } from 'near-sdk-as'
-import { tandas, keys, Tanda} from "../models/tanda";
+import { tandas, keys, Tanda, Integrante} from "../models/model";
 
-const account_id = "";
+const account_id = "joyloz.testnet";
 
 export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): void{
 
@@ -37,4 +37,35 @@ export function getTandas(): Array<Tanda | null>{
 
 export function getTanda(key: string): Tanda | null {
   return tandas.get(key);
+}
+
+
+export function agregarIntegrante(key: string, account_id: string): void {
+  const integrante = new Integrante(account_id);
+  const tanda = tandas.get(key);
+  if (tanda){
+    tanda.agregarIntegrante(integrante);
+    logging.log(`Integrante nuevo ${account_id}  agregado exitosamente`);
+  }
+}
+
+export function consultarIntegrantes(key: string): Array<String> {
+  const tanda = tandas.get(key);
+  if (tanda){
+    const integrantes = tanda.consultarIntegrantes();
+    const tanda_length = integrantes.length;
+    //logging.log(integrantes[0].account_id);
+    logging.log(`Tanda ID: ${tanda.id}, Integrantes: ${tanda_length}`);
+    const numMessages = min(10, tanda_length);
+    const startIndex = tanda_length - numMessages;
+    const result = new Array<String>(numMessages);
+    /*for(let i = 0; i < numMessages; i++) {
+      result[i] = integrantes[i + startIndex].account_id;
+      logging.log(result[i]);
+    }*/
+   /* return result;
+  } else {*/
+  }
+    return ['hola'];
+  //} 
 }
