@@ -1,5 +1,4 @@
 import { context, u128, PersistentMap, PersistentVector, math } from "near-sdk-as";
-//import { Date } from "as-date";
 
 /**
  * Exportando la clase Tanda para poder utilizarla desde otros archivos
@@ -10,9 +9,8 @@ export class Tanda {
     nombre: string;
     num_integrantes: u64;
     monto: u64;
-
-    fecha_inicio: Date;
-    fecha_final: Date;
+    fecha_inicio: string;
+    fecha_final: string;
     activa: bool;
 
     periodo: u64;
@@ -24,9 +22,6 @@ export class Tanda {
         this.monto = monto;
         this.activa = false;
         this.periodo = periodo;
-
-        //this.fecha_final = new Date(0);
-        //this.fecha_inicio = new Date(0);
     }
 }
 

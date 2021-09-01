@@ -1,8 +1,8 @@
-import { logging } from 'near-sdk-as'
+import { logging, context, datetime } from 'near-sdk-as'
 import { tandas, keys, Tanda, periodos} from "../models/tanda";
-//import { Date } from "as-date";
+import { PlainDateTime } from 'assemblyscript-temporal';
 
-const account_id = "";
+//const account_id = context.sender;
 
 export function setTanda(nombreTanda: string, integrantes: u64, monto: u64, periodo: i32): void{
 
@@ -14,7 +14,7 @@ export function setTanda(nombreTanda: string, integrantes: u64, monto: u64, peri
     'Creando tanda"' 
       + nombreTanda 
       + '" en la cuenta "' 
-      + account_id
+      + context.sender
       + '" con "'
       + integrantes.toString()
       + '" integrantes, por "'
@@ -50,13 +50,18 @@ export function cambiarEstadoTanda(key: string): Tanda | null {
   if(tanda != null){
     if(tanda.activa){
       tanda.activa = false;
-      tanda.fecha_final = new Date(1630387618);
+      const date = datetime.block_datetime();
+
+      tanda.fecha_final = date.toString()+' *';
     }
     else{
-      let dias_a_sumar = tanda.num_integrantes * tanda.periodo;
+      let dias_a_sumar: i32 = <i32>tanda.num_integrantes * <i32>tanda.periodo;
       tanda.activa = true;
-      //tanda.fecha_inicio = new Date(Date.now());
-      //tanda.fecha_final = new Date(Date.now() + dias_a_sumar);
+      tanda.fecha_inicio = datetime.block_datetime().toString();
+
+      const date = datetime.block_datetime();
+      const date_added = date.add({day: dias_a_sumar});
+      //tanda.fecha_final = date.toString()+' *';
     }
 
     tandas.set(tanda.id, tanda);
