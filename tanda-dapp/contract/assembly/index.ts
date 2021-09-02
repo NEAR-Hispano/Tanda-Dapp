@@ -2,7 +2,7 @@ import { logging, context, datetime } from 'near-sdk-as'
 import { tandas, keys, Tanda, periodos, Integrante, Pago} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
 
-export function setTanda(nombreTanda: string, integrantes: u64, monto: u64, periodo: i32): void{
+export function crearTanda(nombreTanda: string, integrantes: u64, monto: u64, periodo: i32): void{
 
   let tanda = new Tanda(nombreTanda, integrantes, monto, periodo);
 
@@ -23,7 +23,7 @@ export function setTanda(nombreTanda: string, integrantes: u64, monto: u64, peri
   keys.push(tanda.id);
 }
 
-export function getTandas(): Array<Tanda | null>{
+export function consultarTandas(): Array<Tanda | null>{
   let numTandas = min(10, keys.length);
   let startIndex = keys.length - numTandas;
   let result = new Array<Tanda | null>(numTandas);
@@ -33,7 +33,7 @@ export function getTandas(): Array<Tanda | null>{
   return result;
 }
 
-export function getTanda(key: string): Tanda | null {
+export function consultarTanda(key: string): Tanda | null {
   return tandas.get(key);
 }
 
