@@ -1,4 +1,4 @@
-import { context, u128, PersistentMap, PersistentVector, math } from "near-sdk-as";
+import { context, u128, PersistentMap, PersistentVector } from "near-sdk-as";
 
 /**
  * Exportando la clase Tanda para poder utilizarla desde otros archivos
@@ -9,14 +9,21 @@ export class Tanda {
     nombre: string;
     num_integrantes: u64;
     monto: u64;
+
+    fecha_inicio: string;
+    fecha_final: string;
+    activa: bool;
+
+    periodo: u64;
     
-    constructor(nombre: string, num_integrantes: u64, monto: u64){
-        this.id = math.randomBuffer(14).toString();
+    constructor(nombre: string, num_integrantes: u64, monto: u64, periodo: u64){
+        this.id = context.blockIndex.toString();
         this.nombre = nombre;
         this.num_integrantes = num_integrantes;
         this.monto = monto;
+        this.activa = false;
+        this.periodo = periodo;
     }
-    
 }
 
 /**
@@ -27,3 +34,10 @@ export class Tanda {
  */
  export const tandas = new PersistentMap<string, Tanda>("m");
  export const keys = new PersistentVector<string>("k");
+
+ //Creando tipo Periodo
+ export const periodos = new Map<i32, string>();
+
+ periodos.set(7, "Semanal");
+ periodos.set(15, "Quincenal");
+ periodos.set(30, "Mensual");
