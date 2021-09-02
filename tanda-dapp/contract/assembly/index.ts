@@ -1,18 +1,14 @@
 import { logging, context, datetime } from 'near-sdk-as'
 import { tandas, keys, Tanda, periodos} from "../models/tanda";
-import { PlainDateTime } from 'assemblyscript-temporal';
-
-//const account_id = context.sender;
+import { Duration } from 'assemblyscript-temporal';
 
 export function setTanda(nombreTanda: string, integrantes: u64, monto: u64, periodo: i32): void{
 
   let tanda = new Tanda(nombreTanda, integrantes, monto, periodo);
 
-  //tanda.periodo = Periodo;
-
   logging.log(
     'Creando tanda"' 
-      + nombreTanda 
+      + nombreTanda
       + '" en la cuenta "' 
       + context.sender
       + '" con "'
@@ -44,29 +40,48 @@ export function getTanda(key: string): Tanda | null {
 export function cambiarEstadoTanda(key: string): Tanda | null {
 
   let tanda = tandas.get(key);
-  tandas.delete(key);
-
   
-  if(tanda != null){
+  if(tanda){
     if(tanda.activa){
       tanda.activa = false;
       const date = datetime.block_datetime();
-
-      tanda.fecha_final = date.toString()+' *';
+      tanda.fecha_final = date.toString();
     }
     else{
-      let dias_a_sumar: i32 = <i32>tanda.num_integrantes * <i32>tanda.periodo;
       tanda.activa = true;
-      tanda.fecha_inicio = datetime.block_datetime().toString();
 
-      const date = datetime.block_datetime();
-      const date_added = date.add({day: dias_a_sumar});
-      //tanda.fecha_final = date.toString()+' *';
+      let dias_a_sumar = tanda.num_integrantes * tanda.periodo;
+      const date_added = datetime.block_datetime().add(new Duration(0,0,0,<i32>dias_a_sumar));
+
+      tanda.fecha_inicio = datetime.block_datetime().toString();
+      tanda.fecha_final = date_added.toString();
     }
 
     tandas.set(tanda.id, tanda);
-    return tanda;
+    return tandas.get(tanda.id);
   }
 
+  return null;
+}
+
+export function editarTanda(
+  key: string, 
+  nombreTanda: string = "",
+  integrantes: u64 = 0,
+  monto: u64 = 0,
+  periodo: u64 = 0): Tanda | null {
+
+  let tanda = tandas.get(key);
+
+  if(tanda){
+    if(nombreTanda != "") tanda.nombre = nombreTanda;
+    if(monto != 0 && !tanda.activa) tanda.monto = monto;
+    if(integrantes != 0 && !tanda.activa) tanda.num_integrantes = integrantes;
+    if(periodo != 0 && !tanda.activa) tanda.periodo = periodo;
+
+    tandas.set(tanda.id, tanda);
+    return tandas.get(tanda.id);
+  }
+  
   return null;
 }
