@@ -1,13 +1,11 @@
-import { logging } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante} from "../models/model";
+import { logging, datetime} from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago} from "../models/model";
 
 const account_id = "joyloz.testnet";
 
 export function setTanda(nombreTanda: string, integrantes: u64, monto: u64): void{
 
   let tanda = new Tanda(nombreTanda, integrantes, monto);
-
-  //tanda.periodo = Periodo;
 
   logging.log(
     'Creando tanda"' 
@@ -45,27 +43,60 @@ export function agregarIntegrante(key: string, account_id: string): void {
   const tanda = tandas.get(key);
   if (tanda){
     tanda.agregarIntegrante(integrante);
-    logging.log(`Integrante nuevo ${account_id}  agregado exitosamente`);
   }
 }
 
-export function consultarIntegrantes(key: string): Array<String> {
+export function consultarIntegrantes(key: string): Array<string> | null {
   const tanda = tandas.get(key);
   if (tanda){
     const integrantes = tanda.consultarIntegrantes();
+    
     const tanda_length = integrantes.length;
-    //logging.log(integrantes[0].account_id);
-    logging.log(`Tanda ID: ${tanda.id}, Integrantes: ${tanda_length}`);
     const numMessages = min(10, tanda_length);
     const startIndex = tanda_length - numMessages;
-    const result = new Array<String>(numMessages);
-    /*for(let i = 0; i < numMessages; i++) {
-      result[i] = integrantes[i + startIndex].account_id;
-      logging.log(result[i]);
-    }*/
-   /* return result;
-  } else {*/
+    const result = new Array<string>(numMessages);
+    for(let i = 0; i < numMessages; i++) {
+      result[i] = integrantes[ i + startIndex].account_id;
+    }
+    return result;
   }
-    return ['hola'];
-  //} 
+  return null;
+}
+
+export function agregarIntegrantePago(key: string, account_id: string, monto: u64): bool {
+  const tanda = tandas.get(key);
+  if (tanda){
+    const integrantes = tanda.consultarIntegrantes();
+    
+    const tanda_length = integrantes.length;
+    const numMessages = min(10, tanda_length);
+    const startIndex = tanda_length - numMessages;
+
+    for(let i = 0; i < numMessages; i++) {
+      if(integrantes[ i + startIndex].account_id == account_id){
+        const pago = new Pago(key, monto, datetime.block_datetime().toString());
+        integrantes[ i + startIndex].agregarPago(pago);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+export function consultarIntegrantePago(key: string, account_id: string): Array<Pago> | null {
+  const tanda = tandas.get(key);
+  if (tanda){
+    const integrantes = tanda.consultarIntegrantes();
+    
+    const tanda_length = integrantes.length;
+    const numMessages = min(10, tanda_length);
+    const startIndex = tanda_length - numMessages;
+
+    for(let i = 0; i < numMessages; i++) {
+      if(integrantes[ i + startIndex].account_id == account_id){
+        return integrantes[ i + startIndex].consultarPagos();
+      }
+    }
+  }
+  return null;
 }

@@ -1,15 +1,13 @@
-import { context, u128, PersistentMap, PersistentVector, math } from "near-sdk-as";
+import { context, u128, PersistentMap, PersistentVector, math, logging } from "near-sdk-as";
 
-/**
- * Exportando la clase Tanda para poder utilizarla desde otros archivos
- */
 @nearBindgen
 export class Tanda {
-    id: string;
-    nombre: string;
-    num_integrantes: u64;
-    monto: u64;
-    integrantes: PersistentVector<Integrante>;
+    public id: string;
+    public nombre: string;
+    public num_integrantes: u64;
+    public monto: u64;
+    public periodo: string;
+    public integrantes: PersistentVector<Integrante>;
     
     constructor(nombre: string, num_integrantes: u64, monto: u64){
         this.id = math.randomBuffer(14).toString();
@@ -21,6 +19,7 @@ export class Tanda {
 
     agregarIntegrante(integrante: Integrante): void{
         this.integrantes.push(integrante);
+        logging.log(`Integrante nuevo ${integrante.account_id}  agregado exitosamente`);
     }
     
     consultarIntegrantes(): PersistentVector<Integrante>{
@@ -34,13 +33,13 @@ export class Tanda {
  * El parámetro del constructos necesita un valor unico, este será utilizado
  * como prefijo de todas las keys solicitadas en el almacenamiento de los datos en el storage
  */
- export const tandas = new PersistentMap<string, Tanda>("m");
- export const keys = new PersistentVector<string>("k");
+export const tandas = new PersistentMap<string, Tanda>("m");
+export const keys = new PersistentVector<string>("k");
 
-
- export class Integrante {
-    account_id: string;
-    pagos: PersistentVector<Pago>;
+@nearBindgen
+export class Integrante {
+    public account_id: string;
+    public pagos: PersistentVector<Pago>;
     
     constructor(account_id: string){
         this.account_id =account_id;
@@ -49,6 +48,7 @@ export class Tanda {
     
     agregarPago(pago: Pago): void{
         this.pagos.push(pago);
+        logging.log(`El integrante ${this.account_id} ha realizado un pago de ${pago.monto} exitosamente`);
     }
 
     consultarPagos(): Array<Pago> {
@@ -62,14 +62,15 @@ export class Tanda {
     }
 }
 
+@nearBindgen
 export class Pago {
-    tanda_id: string;
-    monto: u128;
-    fecha_inicio: string;
+    public tanda_id: string;
+    public monto: u64;
+    public fecha_pago: string;
 
-    constructor(tanda_id: string, monto: u128, fecha_inicio: string){
+    constructor(tanda_id: string, monto: u64, fecha_pago: string){
         this.tanda_id = tanda_id;
         this.monto = monto;
-        this.fecha_inicio = fecha_inicio;
+        this.fecha_pago = fecha_pago;
     }
 }
