@@ -5,6 +5,23 @@ import { AccountId, MAX_PAGE_SIZE, periodos} from './utils';
 
 export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, periodo: i32): void{
 
+  //Validamos que los parámetros enviados sean correctos
+
+  /* Tecnicamente podría ir vacío, no hay ningún método que requiera el nombre.
+   * Sin embargo, dado a que esto será mostrado al usuario, es mejor que 
+   * desde el inicio se tenga asignado el nombre.
+   */
+  assert(nombreTanda != "", "El nombre de la Tanda no puede estar vacío.");
+
+  // Toda tanda necesita al menos 2 integrantes.
+  assert(integrantes > 2, "La Tanda necesita al menos 2 integrantes.");
+
+  // Necesitamos que el monto a ahorrar sea mayor a 0.
+  assert(monto > 0, "El monto a ahorrar tiene que ser mayor a 0.");
+
+  // Se requiere un periodo de mínimo 1 (en días).
+  assert(periodo > 0, "El periodo no puede ser menor a 1.");
+
   let tanda = new Tanda(nombreTanda, integrantes, monto, periodo);
 
   logging.log(
@@ -35,11 +52,18 @@ export function consultarTandas(): Array<Tanda | null>{
 }
 
 export function consultarTanda(key: string): Tanda | null {
+  assert(key != "","El campo de clave no debe estar vacío.");
   return tandas.get(key);
 }
 
 
 export function agregarIntegrante(key: string, accountId: AccountId): void {
+
+  //Validando inputs
+  assert(accountId != "", "El campo de usuario no debe estar vacío.");
+  assert(key != "", "El campo de clave no debe estar vacío.");
+  
+
   const integrante = new Integrante(accountId);
   const tanda = tandas.get(key);
   if (tanda){
@@ -48,6 +72,9 @@ export function agregarIntegrante(key: string, accountId: AccountId): void {
 }
 
 export function consultarIntegrantes(key: string): Array<string> | null {
+
+  assert(key != "", "El campo de clave no debe estar vacío.");
+
   const tanda = tandas.get(key);
   if (tanda){
     const integrantes = tanda.consultarIntegrantes();
@@ -105,6 +132,7 @@ export function consultarIntegrantePago(key: string, semanaId: string): Array<Pa
 
 export function cambiarEstadoTanda(key: string): Tanda | null {
 
+  assert(key != "", "El campo de clave no debe estar vacío.");
   let tanda = tandas.get(key);
   
   if(tanda){
@@ -136,6 +164,9 @@ export function editarTanda(
   integrantes: i32 = 0,
   monto: u64 = 0,
   periodo: u64 = 0): Tanda | null {
+
+  //Validando inputs
+  assert(key != "", "El campo de clave no debe estar vacío.");
 
   let tanda = tandas.get(key);
 

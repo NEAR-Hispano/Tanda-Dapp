@@ -24,7 +24,7 @@ export class Tanda {
     }
 
     agregarIntegrante(integrante: Integrante): void{
-        if (this.numIntegrantes < this.integrantes.length) {
+        if (<i32>this.numIntegrantes < this.integrantes.length) {
             this.integrantes.push(integrante);
             logging.log(`Integrante nuevo ${integrante.accountId}  agregado exitosamente`);
         }
