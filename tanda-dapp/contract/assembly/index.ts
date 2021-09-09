@@ -1,8 +1,26 @@
 import { logging, context, datetime } from 'near-sdk-as'
-import { tandas, keys, Tanda, periodos, Integrante, Pago} from "../models/model";
+import { tandas, keys, Tanda, Integrante, Pago} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
+import { AccountId, MAX_PAGE_SIZE, periodos} from './utils';
 
-export function crearTanda(nombreTanda: string, integrantes: u64, monto: u64, periodo: i32): void{
+export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, periodo: i32): void{
+
+  //Validamos que los parámetros enviados sean correctos
+
+  /* Tecnicamente podría ir vacío, no hay ningún método que requiera el nombre.
+   * Sin embargo, dado a que esto será mostrado al usuario, es mejor que 
+   * desde el inicio se tenga asignado el nombre.
+   */
+  assert(nombreTanda != "", "El nombre de la Tanda no puede estar vacío.");
+
+  // Toda tanda necesita al menos 2 integrantes.
+  assert(integrantes > 2, "La Tanda necesita al menos 2 integrantes.");
+
+  // Necesitamos que el monto a ahorrar sea mayor a 0.
+  assert(monto > 0, "El monto a ahorrar tiene que ser mayor a 0.");
+
+  // Se requiere un periodo de mínimo 1 (en días).
+  assert(periodo > 0, "El periodo no puede ser menor a 1.");
 
   let tanda = new Tanda(nombreTanda, integrantes, monto, periodo);
 
@@ -24,7 +42,7 @@ export function crearTanda(nombreTanda: string, integrantes: u64, monto: u64, pe
 }
 
 export function consultarTandas(): Array<Tanda | null>{
-  let numTandas = min(10, keys.length);
+  let numTandas = min(MAX_PAGE_SIZE, keys.length);
   let startIndex = keys.length - numTandas;
   let result = new Array<Tanda | null>(numTandas);
   for (let i = 0; i < numTandas; i++) {
@@ -34,12 +52,19 @@ export function consultarTandas(): Array<Tanda | null>{
 }
 
 export function consultarTanda(key: string): Tanda | null {
+  assert(key != "","El campo de clave no debe estar vacío.");
   return tandas.get(key);
 }
 
 
-export function agregarIntegrante(key: string, account_id: string): void {
-  const integrante = new Integrante(account_id);
+export function agregarIntegrante(key: string, accountId: AccountId): void {
+
+  //Validando inputs
+  assert(accountId != "", "El campo de usuario no debe estar vacío.");
+  assert(key != "", "El campo de clave no debe estar vacío.");
+  
+
+  const integrante = new Integrante(accountId);
   const tanda = tandas.get(key);
   if (tanda){
     tanda.agregarIntegrante(integrante);
@@ -47,35 +72,39 @@ export function agregarIntegrante(key: string, account_id: string): void {
 }
 
 export function consultarIntegrantes(key: string): Array<string> | null {
+
+  assert(key != "", "El campo de clave no debe estar vacío.");
+
   const tanda = tandas.get(key);
   if (tanda){
     const integrantes = tanda.consultarIntegrantes();
     
     const tanda_length = integrantes.length;
-    const numMessages = min(10, tanda_length);
+    const numMessages = min(MAX_PAGE_SIZE, tanda_length);
     const startIndex = tanda_length - numMessages;
     const result = new Array<string>(numMessages);
     for(let i = 0; i < numMessages; i++) {
-      result[i] = integrantes[ i + startIndex].account_id;
+      result[i] = integrantes[ i + startIndex].accountId;
     }
     return result;
   }
   return null;
 }
 
-export function agregarIntegrantePago(key: string, account_id: string, monto: u64): bool {
+export function agregarIntegrantePago(key: string, semanaId: string): bool {
   const tanda = tandas.get(key);
   if (tanda){
     const integrantes = tanda.consultarIntegrantes();
     
     const tanda_length = integrantes.length;
-    const numMessages = min(10, tanda_length);
+    const numMessages = min(MAX_PAGE_SIZE, tanda_length);
     const startIndex = tanda_length - numMessages;
+    const monto = context.attachedDeposit;
 
     for(let i = 0; i < numMessages; i++) {
-      if(integrantes[ i + startIndex].account_id == account_id){
+      if(integrantes[ i + startIndex].accountId == context.predecessor){
         const pago = new Pago(key, monto, datetime.block_datetime().toString());
-        integrantes[ i + startIndex].agregarPago(pago);
+        integrantes[ i + startIndex].agregarPago(semanaId, pago);
         return true;
       }
     }
@@ -83,18 +112,18 @@ export function agregarIntegrantePago(key: string, account_id: string, monto: u6
   return false;
 }
 
-export function consultarIntegrantePago(key: string, account_id: string): Array<Pago> | null {
+export function consultarIntegrantePago(key: string, semanaId: string): Array<Pago> | null {
   const tanda = tandas.get(key);
   if (tanda){
     const integrantes = tanda.consultarIntegrantes();
     
     const tanda_length = integrantes.length;
-    const numMessages = min(10, tanda_length);
+    const numMessages = min(MAX_PAGE_SIZE, tanda_length);
     const startIndex = tanda_length - numMessages;
 
     for(let i = 0; i < numMessages; i++) {
-      if(integrantes[ i + startIndex].account_id == account_id){
-        return integrantes[ i + startIndex].consultarPagos();
+      if(integrantes[ i + startIndex].accountId == context.predecessor){
+        return integrantes[ i + startIndex].consultarPagos(semanaId);
       }
     }
   }
@@ -103,22 +132,23 @@ export function consultarIntegrantePago(key: string, account_id: string): Array<
 
 export function cambiarEstadoTanda(key: string): Tanda | null {
 
+  assert(key != "", "El campo de clave no debe estar vacío.");
   let tanda = tandas.get(key);
   
   if(tanda){
     if(tanda.activa){
       tanda.activa = false;
       const date = datetime.block_datetime();
-      tanda.fecha_final = date.toString();
+      tanda.fechaFinal = date.toString();
     }
     else{
       tanda.activa = true;
 
-      let dias_a_sumar = tanda.num_integrantes * tanda.periodo;
+      let dias_a_sumar = tanda.numIntegrantes * tanda.periodo;
       const date_added = datetime.block_datetime().add(new Duration(0,0,0,<i32>dias_a_sumar));
 
-      tanda.fecha_inicio = datetime.block_datetime().toString();
-      tanda.fecha_final = date_added.toString();
+      tanda.fechaInicio = datetime.block_datetime().toString();
+      tanda.fechaFinal = date_added.toString();
     }
 
     tandas.set(tanda.id, tanda);
@@ -131,16 +161,19 @@ export function cambiarEstadoTanda(key: string): Tanda | null {
 export function editarTanda(
   key: string, 
   nombreTanda: string = "",
-  integrantes: u64 = 0,
+  integrantes: i32 = 0,
   monto: u64 = 0,
   periodo: u64 = 0): Tanda | null {
+
+  //Validando inputs
+  assert(key != "", "El campo de clave no debe estar vacío.");
 
   let tanda = tandas.get(key);
 
   if(tanda){
     if(nombreTanda != "") tanda.nombre = nombreTanda;
     if(monto != 0 && !tanda.activa) tanda.monto = monto;
-    if(integrantes != 0 && !tanda.activa) tanda.num_integrantes = integrantes;
+    if(integrantes != 0 && !tanda.activa) tanda.numIntegrantes = integrantes;
     if(periodo != 0 && !tanda.activa) tanda.periodo = periodo;
 
     tandas.set(tanda.id, tanda);

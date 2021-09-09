@@ -1,21 +1,22 @@
 import { context, u128, PersistentMap, PersistentVector, math, logging } from "near-sdk-as";
+import { AccountId, MAX_PAGE_SIZE, Money, Periodo } from "../assembly/utils";
 
 @nearBindgen
 export class Tanda {
     id: string;
     nombre: string;
-    num_integrantes: u64;
+    numIntegrantes:  u64;
     monto: u64;
-    fecha_inicio: string;
-    fecha_final: string;
+    fechaInicio: string;
+    fechaFinal: string;
     activa: bool;
     periodo: u64;
     integrantes: PersistentVector<Integrante>;
     
-    constructor(nombre: string, num_integrantes: u64, monto: u64, periodo: u64){
+    constructor(nombre: string, numIntegrantes:  u64, monto: u64, periodo: u64){
         this.id = context.blockIndex.toString();
         this.nombre = nombre;
-        this.num_integrantes = num_integrantes;
+        this.numIntegrantes = numIntegrantes;
         this.monto = monto;
         this.activa = false;
         this.periodo = periodo;
@@ -23,8 +24,11 @@ export class Tanda {
     }
 
     agregarIntegrante(integrante: Integrante): void{
-        this.integrantes.push(integrante);
-        logging.log(`Integrante nuevo ${integrante.account_id}  agregado exitosamente`);
+        if (<i32>this.numIntegrantes < this.integrantes.length) {
+            this.integrantes.push(integrante);
+            logging.log(`Integrante nuevo ${integrante.accountId}  agregado exitosamente`);
+        }
+        logging.log(`La Tanda se encuentra llena, ya no existen lugares disponibles.`);
     }
     
     consultarIntegrantes(): PersistentVector<Integrante>{
@@ -39,49 +43,55 @@ export class Tanda {
  * como prefijo de todas las keys solicitadas en el almacenamiento de los datos en el storage
  */
 export const tandas = new PersistentMap<string, Tanda>("m");
+
+// Almancenamiento de los identificadores de las tandas registradas
 export const keys = new PersistentVector<string>("k");
 
- //Creando tipo Periodo
- export const periodos = new Map<i32, string>();
- periodos.set(7, "Semanal");
- periodos.set(15, "Quincenal");
- periodos.set(30, "Mensual");
+
 
 @nearBindgen
 export class Integrante {
-    public account_id: string;
-    public pagos: PersistentVector<Pago>;
+    public accountId: AccountId;
+    public pagos: PersistentMap<string, Array<Pago>>;
     
-    constructor(account_id: string){
-        this.account_id =account_id;
-        this.pagos =  new PersistentVector<Pago>("p");
+    constructor(accountId: AccountId){
+        this.accountId =accountId;
+        this.pagos =  new PersistentMap<string, Array<Pago>>("p");
     }
     
-    agregarPago(pago: Pago): void{
-        this.pagos.push(pago);
-        logging.log(`El integrante ${this.account_id} ha realizado un pago de ${pago.monto} exitosamente`);
+    agregarPago(semanaId: string, pago: Pago): void{
+        const periodoPagos = this.pagos.get(semanaId);
+        if(periodoPagos){
+            periodoPagos.push(pago);
+            logging.log(`El integrante ${this.accountId} ha realizado un pago de ${pago.monto} exitosamente`);
+        }
+        logging.log(`Periodo de pagos no encontrado`);
     }
 
-    consultarPagos(): Array<Pago> {
-        const numMessages = min(10, this.pagos.length);
-        const startIndex = this.pagos.length - numMessages;
-        const result = new Array<Pago>(numMessages);
-        for(let i = 0; i < numMessages; i++) {
-          result[i] = this.pagos[i + startIndex];
+    consultarPagos(semanaId: string): Array<Pago> | null {
+        const periodoPagos = this.pagos.get(semanaId);
+        if(periodoPagos){
+            const numMessages = min(MAX_PAGE_SIZE, periodoPagos.length);
+            const startIndex = periodoPagos.length - numMessages;
+            const result = new Array<Pago>(numMessages);
+            for(let i = 0; i < numMessages; i++) {
+                result[i] = periodoPagos[i + startIndex];
+            }
+            return result;
         }
-        return result;
+        return null;
     }
 }
 
 @nearBindgen
 export class Pago {
-    public tanda_id: string;
-    public monto: u64;
-    public fecha_pago: string;
+    public tandaId: string;
+    public monto: Money;
+    public fechaPago: string;
 
-    constructor(tanda_id: string, monto: u64, fecha_pago: string){
-        this.tanda_id = tanda_id;
+    constructor(tandaId: string, monto: Money, fechaPago: string){
+        this.tandaId = tandaId;
         this.monto = monto;
-        this.fecha_pago = fecha_pago;
+        this.fechaPago = fechaPago;
     }
 }
