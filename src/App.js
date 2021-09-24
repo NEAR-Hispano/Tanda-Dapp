@@ -2,20 +2,11 @@ import 'regenerator-runtime/runtime'
 import React from 'react'
 import { login, logout } from './utils'
 import './global.css'
-import {
-  CardWrapper,
-  CardHeader,
-  CardHeading,
-  CardBody,
-  CardIcon,
-  CardFieldset,
-  CardInput,
-  CardOptionsItem,
-  CardOptions,
-  CardOptionsNote,
-  CardButton,
-  CardLink
-} from "./components/Card";
+import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button } from 'antd';
+import { LoginOutlined, LogoutOutlined } from '@ant-design/icons';
+import 'antd/dist/antd.css';
+
+const { Header, Content, Footer } = Layout;
 
 import getConfig from './config'
 const { networkId } = getConfig(process.env.NODE_ENV || 'development')
@@ -24,14 +15,11 @@ export default function App() {
   // Utilizando ReactHooks para almacenar las tandas en el componente state
   const [tandas, setTanda] = React.useState([])
 
-  // when the user has not yet interacted with the form, disable the button
-  const [buttonDisabled, setButtonDisabled] = React.useState(true)
-
   // after submitting the form, we want to show Notification
   const [showNotification, setShowNotification] = React.useState(false)
 
   // The useEffect hook can be used to fire side-effects during render
-  // Learn more: https://reactjs.org/docs/hooks-intro.html
+  // Learn more: https://reactjs.org/docs/hooks-intro.htmL
   React.useEffect(
     () => {
       // in this case, we only care to query the contract when signed in
@@ -41,14 +29,11 @@ export default function App() {
         window.contract.consultarTandas({})
           .then(tandaContrato => {
             tandaContrato.map(item => {
-              setTanda(tandas => [...tandas, item])
-              console.log(item.nombre);
+              setTanda(tandas => [...tandas, item]);
             });
-            //setGreeting(tandaContrato)
           })
       }
     },
-
     // The second argument to useEffect tells React when to re-run the effect
     // Use an empty array to specify "only run on first render"
     // This works because signing into NEAR Wallet reloads the page
@@ -57,92 +42,84 @@ export default function App() {
 
   // if not signed in, return early with sign-in prompt
   if (!window.walletConnection.isSignedIn()) {
+    const contentStyle = {
+      height: '500px',
+      width:'100%',
+      color: '#fff',
+      textAlign: 'center',
+    };
     return (
-      <main>
-        <h1>Bienvenido a TandaDapp!</h1>
-        <p>
-          To make use of the NEAR blockchain, you need to sign in. The button
-          below will sign you in using NEAR Wallet.
-        </p>
-        <p>
-          By default, when your app runs in "development" mode, it connects
-          to a test network ("testnet") wallet. This works just like the main
-          network ("mainnet") wallet, but the NEAR Tokens on testnet aren't
-          convertible to other currencies – they're just for testing!
-        </p>
-        <p>
-          Go ahead and click the button below to try it out:
-        </p>
-        <p style={{ textAlign: 'center', marginTop: '2.5em' }}>
-          <button onClick={login}>Iniciar sesión</button>
-        </p>
-      </main>
+      <>
+      <p style={{ textAlign: 'right', marginTop: '2.5em',  marginRight: '1em' }}>
+        <Button  type="primary"  shape="round" ghost icon={<LoginOutlined />} onClick={login}>Iniciar sesión</Button>
+      </p>
+       
+      <h1>Tandem DApp</h1>
+      <Layout className="layout" style={{background:'#bfc9d8'}}>
+        
+        <Carousel>
+            <div >
+              <h3 style={{...contentStyle,  backgroundImage: `url("https://image.flaticon.com/icons/png/512/1254/1254755.png")`}}></h3>
+            </div>
+            <div>
+              <h3 style={{...contentStyle,  backgroundImage: `url("https://www.mejor-banco.com/wp-content/uploads/2019/01/horrar-dinerco.png")`}}></h3>
+            </div>
+            <div>
+              <h3 style={{...contentStyle,  backgroundImage: `url("https://files.consumerfinance.gov/f/images/bcfp_prepararse-blog-3_blog-header.original.png")`}}></h3>
+            </div>
+            <div>
+              <h3 style={{...contentStyle,  backgroundImage: `url("https://s3.amazonaws.com/businessinsider.mx/wp-content/uploads/2021/06/24152825/invertir-ahorrar-1280x620.png")`}}></h3>
+            </div>
+          </Carousel>
+        <Footer style={{ textAlign: 'center' }}>
+          Tandem ©2021 Created by EDU Near | 
+          <img style={{ width:'7%'}} src={'https://www.nearhispano.org/assets/img/near-hispano-logo.png'}></img>
+        
+        </Footer>
+      </Layout>
+      </>
     )
   }
-
+ //https://miro.medium.com/fit/c/262/262/1*uE2OBeUrGj5ut1jr_Z5pYA.png
   return (
     // use React Fragment, <>, to avoid wrapping elements in unnecessary divs
     <>
-      <button className="link" style={{ float: 'right' }} onClick={logout}>
-        Sign out
-      </button>
-      <main>
+      <p style={{ textAlign: 'right', marginTop: '2.5em',  marginRight: '1em' }}>
+        <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
+      </p>
+
+      <h1>Tandem DApp</h1>
+      <Layout className="layout" style={{background:'#bfc9d8'}}>
         <h1>
-          <label
-            htmlFor="greeting"
-            style={{
-              color: 'var(--secondary)',
-              borderBottom: '2px solid var(--secondary)'
-            }}
-          >
-           
-          </label>
           {' '/* React trims whitespace around tags; insert literal space character when needed */}
           {window.accountId}!
         </h1>
         <div >
-          <fieldset id="fieldset">
-            <label
-              htmlFor="greeting"
-              style={{
-                display: 'block',
-                color: 'var(--gray)',
-                marginBottom: '0.5em'
-              }}
-            >
-              Lista Tandas
-            </label>
-
-
-            { tandas.map(tanda => 
-            <><CardWrapper>
-                <CardHeader>
-                  <CardHeading>{tanda.nombre}</CardHeading>
-                </CardHeader>
-
-                <CardBody>
-                  <CardFieldset>
-                    {/* <CardInput placeholder="integrantes" type="text" value={tanda.numIntegrantes} /> */}
-                    <label>No. Integrantes: {tanda.numIntegrantes}</label>
-                  </CardFieldset>
-
-                  <CardFieldset>
-                    {/* <CardInput placeholder="monto" type="text" value={tanda.monto} />*/}
-                    <label>Monto: {tanda.monto}</label>
-                  </CardFieldset>
-
-                  <CardFieldset>
-                    {/* <CardInput placeholder="fecha_inicio" type="password" value={tanda.fechaInicio} />*/}
-                    <label>Fecha Inicio: {tanda.fechaInicio||'Inactiva'}</label>
-                    <CardIcon className="fa fa-eye" eye small />
-                  </CardFieldset>
-                </CardBody>
-              </CardWrapper></>
-                )
-            }
-          </fieldset>
+          <div className="site-card-wrapper">
+              <Row gutter={16}>
+              { tandas.map(tanda => 
+                    <Col span={8}>
+                      <Card hoverable title={tanda.nombre} bordered={true}>
+                        Intengrantes: {tanda.numIntegrantes} <br/>
+                        Monto: {tanda.monto} <br/>
+                        Fecha Inicio: {tanda.fechaInicio} <br/>
+                        Fecha Fin: {tanda.fechaFin} <br/>
+                        Activa: {tanda.activa} <br/>
+                        Periodo: {tanda.periodo} <br/>
+                      </Card>
+                    </Col>
+                  )
+              }
+              </Row>
+          </div>
         </div>
-      </main>
+        <Footer style={{ textAlign: 'center' }}>
+          Tandem ©2021 Created by EDU Near | 
+          <img style={{ width:'7%'}} src={'https://www.nearhispano.org/assets/img/near-hispano-logo.png'}></img>
+        
+        </Footer>
+      </Layout>
+
       {showNotification && <Notification />}
     </>
   )
