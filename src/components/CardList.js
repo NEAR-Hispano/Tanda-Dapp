@@ -7,13 +7,14 @@ const CardList = ({ tandas }) => {
       {
         tandas.map((nombre, i) => {
           return (
-            <Card
-              key={i}
-              nombre={tandas[i].nombre}
-              integrantes={tandas[i].numIntegrantes}
-              monto={tandas[i].monto}
-              periodo={tandas[i].periodo}
-              />
+              <Card
+                key={tandas[i].id}
+                id={tandas[i].id}
+                nombre={tandas[i].nombre}
+                integrantes={tandas[i].numIntegrantes}
+                monto={tandas[i].monto}
+                periodo={tandas[i].periodo}
+                />
           );
         })
       }

@@ -1,49 +1,45 @@
 import React from 'react';
-import CardList from './components/CardList';
-import SearchBox from './components/SearchBox';
-import Scroll from './components/Scroll';
 import './App.css';
+import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 
-class App extends React.Component {
+//Components
+import AdministrarTanda from './components/AdministrarTanda';
+import Bienvenida from './components/Bienvenida';
+import BuscarTandas from './components/BuscarTandas';
+import CrearTanda from './components/CrearTanda';
+import EditarTanda from './components/EditarTanda';
+import MisTandas from './components/MisTandas';
+import Principal from './components/Principal';
+import InfoTanda from './components/InfoTanda';
+import SinSesion from './components/SinSesion';
+import Nav from './components/Nav';
 
-  constructor() {
-    var tandasArray = [];
-    window.contract.consultarTandas({})
-    .then(listaTandas => {
-      listaTandas.map(item => {
-        tandasArray.push(item);
-      });
-    });
-    super()
-    this.state = {
-      tandas: tandasArray,
-      campoBusqueda: ''
-    };
-  }
-
-  componentDidMount() {  
-    console.log(this.state.tandas);
-  }
-
-  onSearchChange = (event) => {
-    this.setState({ campoBusqueda: event.target.value });
-  }
-
-  render() {
-    const { tandas, campoBusqueda } = this.state;
-    const tandasFiltradas = tandas.filter(tanda =>{
-      return tanda.nombre.toLowerCase().includes(campoBusqueda.toLowerCase());
-    })
+export default function App() {
+  if (!window.walletConnection.isSignedIn()) {
     return (
-        <div className='tc'>
-          <h1 className='f1'>Tandem</h1>
-          <SearchBox searchChange={this.onSearchChange}/>
-          <Scroll>
-            <CardList tandas={tandasFiltradas} />
-          </Scroll>
-        </div>
+      <div>
+        <Nav />
+        <h1 className='f1'>Tandem</h1>
+        <SinSesion />
+      </div>
       );
   }
-}
+  else{
+    console.log("Esta sesión está iniciada correctamente.");
+  }
 
-export default App;
+  return (
+    <Router>
+      <div className='tc'>
+        <Nav />
+        <h1 className='f1'>Tandem</h1>
+        <Switch>
+          <Route path="/" exact component={Bienvenida}/>
+          <Route path="/crear-tanda" component={CrearTanda}/>
+          <Route path="/buscar-tandas" exact component={BuscarTandas}/>
+          <Route path="/buscar-tandas/:id" component={InfoTanda}/>
+        </Switch>
+      </div>
+    </Router>
+  );
+}
