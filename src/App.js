@@ -2,14 +2,15 @@ import 'regenerator-runtime/runtime'
 import React from 'react'
 import { login, logout } from './utils'
 import './global.css'
-import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button, Tag, Divider, Avatar } from 'antd';
+import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button, Tag, Divider, Avatar, Tabs } from 'antd';
 
 import { LoginOutlined, LogoutOutlined, CheckCircleOutlined, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
-
+import { Periodos } from './utils/enums';
 const { Header, Content, Footer } = Layout;
 
-import getConfig from './config'
+import getConfig from './config';
+const { TabPane } = Tabs;
 const { networkId } = getConfig(process.env.NODE_ENV || 'development')
 
 export default function App() {
@@ -89,29 +90,35 @@ export default function App() {
       <h3> <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />  {window.accountId}!</h3>
        <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
       </p>
-
       
       <Layout className="layout" style={{background:'#bfc9d8'}}>
-      <h1>Tandem DApp</h1>
-        <div >
-          <div className="site-card-wrapper">
-              <Row >
-              { tandas.map(tanda => 
-                    <Col>
-                      <Card key={tanda.id} hoverable title={tanda.nombre} bordered={true} style={{ width: '300px', margin: 16 }} >
-                        <b>Intengrantes:</b> {tanda.numIntegrantes} <br/>
-                        <b>Monto:</b> {tanda.monto} <br/>
-                        <b>Fecha Inicio:</b> {tanda.fechaInicio} <br/>
-                        <b>Fecha Fin:</b> {tanda.fechaFin} <br/>
-                        <b>Activa:</b> <Tag icon={tanda.activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} color={tanda.activa ? "success" : "warning"}>{tanda.activa? 'Activa': 'Pendiente'}</Tag><br/>
-                        <b>Periodo:</b> {Hola} <br/>
-                      </Card>
-                    </Col>
-                  )
-              }
-              </Row>
-          </div>
-        </div>
+        <h1>Tandem DApp</h1>
+        <Tabs type="card" style={{ margin: '1em' }}>
+          <TabPane tab="Tandas" key="1">
+            <div className="site-card-wrapper">
+                <Row >
+                { tandas.map(tanda => 
+                      <Col>
+                        <Card key={tanda.id} hoverable title={tanda.nombre} bordered={true} style={{ width: '300px', margin: 16 }} >
+                          <b>Intengrantes:</b> {tanda.numIntegrantes} <br/>
+                          <b>Monto:</b> {tanda.monto} <br/>
+                          <b>Fecha Inicio:</b> {tanda.fechaInicio} <br/>
+                          <b>Fecha Fin:</b> {tanda.fechaFin} <br/>
+                          <b>Activa:</b> <Tag icon={tanda.activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} color={tanda.activa ? "success" : "warning"}>{tanda.activa? 'Activa': 'Pendiente'}</Tag><br/>
+                          <b>Periodo:</b> {Periodos[tanda.periodo]} <br/>
+                        </Card>
+                      </Col>
+                    )
+                }
+                </Row>
+            </div>
+          </TabPane>
+          <TabPane tab="Mis Tandas" key="2">
+            <p>Content of Tab Pane 2</p>
+            <p>Content of Tab Pane 2</p>
+            <p>Content of Tab Pane 2</p>
+          </TabPane>
+        </Tabs>
         <Footer style={{ textAlign: 'center' }}>
           Tandem ©2021 Created by EDU Near | 
           <img style={{ width:'7%'}} src={'https://www.nearhispano.org/assets/img/near-hispano-logo.png'}></img>
