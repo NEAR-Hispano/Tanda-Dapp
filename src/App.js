@@ -38,6 +38,7 @@ export default function App() {
           <Route path="/crear-tanda" component={CrearTanda}/>
           <Route path="/buscar-tandas" exact component={BuscarTandas}/>
           <Route path="/buscar-tandas/:id" component={InfoTanda}/>
+          <Route path="/editar-tanda" component={EditarTanda}/>
         </Switch>
       </div>
     </Router>

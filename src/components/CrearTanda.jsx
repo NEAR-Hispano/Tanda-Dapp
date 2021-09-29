@@ -1,56 +1,61 @@
-// import React, { useState } from 'react';
-// import { Form, Input, Button, Radio } from 'antd';
-// //import { InfoCircleOutlined } from '@ant-design/icons';
-
-// const CrearTanda = () => {
-//   const [form] = Form.useForm();
-//   const [requiredMark, setRequiredMarkType] = useState('optional');
-
-//   const onRequiredTypeChange = ({ requiredMarkValue }) => {
-//     setRequiredMarkType(requiredMarkValue);
-//   };
-
-//   return (
-//     <Form
-//       form={form}
-//       layout="vertical"
-//       initialValues={{
-//         requiredMarkValue: requiredMark,
-//       }}
-//       onValuesChange={onRequiredTypeChange}
-//       requiredMark={requiredMark}
-//     >
-//       <Form.Item label="Required Mark" name="requiredMarkValue">
-//         <Radio.Group>
-//           <Radio.Button value="optional">Optional</Radio.Button>
-//           <Radio.Button value>Required</Radio.Button>
-//           <Radio.Button value={false}>Hidden</Radio.Button>
-//         </Radio.Group>
-//       </Form.Item>
-//       <Form.Item label="Field A" required tooltip="This is a required field">
-//         <Input placeholder="input placeholder" />
-//       </Form.Item>
-//       <Form.Item
-//         label="Field B"
-//         tooltip={{
-//           title: 'Tooltip with customize icon',
-//           icon: <InfoCircleOutlined />,
-//         }}
-//       >
-//         <Input placeholder="input placeholder" />
-//       </Form.Item>
-//       <Form.Item>
-//         <Button type="primary">Submit</Button>
-//       </Form.Item>
-//     </Form>
-//   );
-// };
-
-// ReactDOM.render(<CrearTanda />, mountNode);
-
 import React from 'react';
+import { Form, Input, Button, Select } from 'antd';
+import 'antd/dist/antd.css';
 
 const CrearTanda = () => {
-    return (<h1 className='f1'>Crear Tanda</h1>);
+
+    const onFinish = values => {
+
+        if (window.walletConnection.isSignedIn()) {
+                window.contract.crearTanda({ 
+                    nombreTanda: values.nombreTanda,
+                    integrantes: `${values.numIntegrantes}`,
+                    monto: `${values.monto}`,
+                    periodo: 15
+                }).then(info => { console.log(info); 
+            });
+        }
+    };
+
+    return (
+        <>
+        <Form name="crearTanda" onFinish={onFinish} labelCol={{span: 8,}} wrapperCol={{span: 8,}}>
+            <Form.Item label="Nombre Tanda" name="nombreTanda"
+                rules={[{
+                    required: true,
+                    message: 'Introduce el nombre de la tanda',},]}>
+                <Input />
+            </Form.Item>
+
+            <Form.Item label="Número de integrantes" name="numIntegrantes"
+                rules={[{
+                    required: true,
+                    message: 'Introduce el número de integrantes',},]}>
+                <Input />
+            </Form.Item>
+
+            <Form.Item label="Monto" name="monto"
+                rules={[{
+                    required: true,
+                    message: 'Introduce el monto a ahorrar',},]}>
+                <Input />
+            </Form.Item>
+
+            <Form.Item label="Periodo" name="periodo" rules={[{required: true,},]}>
+                <Select
+                placeholder="Selecciona el periodo para ahorrar."
+                allowClear>
+                    <Select.Option value="semanal">Semanal</Select.Option>
+                    <Select.Option value="quincenal">Quincenal</Select.Option>
+                    <Select.Option value="mensual">Mensual</Select.Option>
+                </Select>
+            </Form.Item>
+            <Form.Item>
+                <Button type="primary" htmlType="submit">Crear Tanda</Button>
+            </Form.Item>
+        </Form>
+        
+        </>
+    );
 }
 export default CrearTanda;

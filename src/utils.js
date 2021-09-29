@@ -20,7 +20,7 @@ export async function initContract() {
     // View methods are read only. They don't modify the state, but usually return some value.
     viewMethods: ['consultarTandas','consultarTanda'],
     // Change methods can modify the state. But you don't receive the returned value when called.
-    changeMethods: ['crearTanda'],
+    changeMethods: ['crearTanda','editarTanda'],
   })
 }
 

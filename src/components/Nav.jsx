@@ -10,7 +10,7 @@ class Nav extends React.Component {
               <Link style={{color: 'white'}} to="/crear-tanda">
                 <li>Crear Tanda</li>
               </Link> 
-              <Link style={{color: 'white'}} to="buscar-tandas">
+              <Link style={{color: 'white'}} to="/buscar-tandas">
                 <li>Buscar Tandas</li>
               </Link> 
             </ul>
