@@ -2,8 +2,9 @@ import 'regenerator-runtime/runtime'
 import React from 'react'
 import { login, logout } from './utils'
 import './global.css'
-import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button } from 'antd';
-import { LoginOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button, Tag, Divider, Avatar } from 'antd';
+
+import { LoginOutlined, LogoutOutlined, CheckCircleOutlined, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
 
 const { Header, Content, Footer } = Layout;
@@ -85,27 +86,25 @@ export default function App() {
     // use React Fragment, <>, to avoid wrapping elements in unnecessary divs
     <>
       <p style={{ textAlign: 'right', marginTop: '2.5em',  marginRight: '1em' }}>
-        <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
+      <h3> <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} />  {window.accountId}!</h3>
+       <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
       </p>
 
-      <h1>Tandem DApp</h1>
+      
       <Layout className="layout" style={{background:'#bfc9d8'}}>
-        <h1>
-          {' '/* React trims whitespace around tags; insert literal space character when needed */}
-          {window.accountId}!
-        </h1>
+      <h1>Tandem DApp</h1>
         <div >
           <div className="site-card-wrapper">
-              <Row gutter={16}>
+              <Row >
               { tandas.map(tanda => 
-                    <Col span={8}>
-                      <Card hoverable title={tanda.nombre} bordered={true}>
-                        Intengrantes: {tanda.numIntegrantes} <br/>
-                        Monto: {tanda.monto} <br/>
-                        Fecha Inicio: {tanda.fechaInicio} <br/>
-                        Fecha Fin: {tanda.fechaFin} <br/>
-                        Activa: {tanda.activa} <br/>
-                        Periodo: {tanda.periodo} <br/>
+                    <Col>
+                      <Card key={tanda.id} hoverable title={tanda.nombre} bordered={true} style={{ width: '300px', margin: 16 }} >
+                        <b>Intengrantes:</b> {tanda.numIntegrantes} <br/>
+                        <b>Monto:</b> {tanda.monto} <br/>
+                        <b>Fecha Inicio:</b> {tanda.fechaInicio} <br/>
+                        <b>Fecha Fin:</b> {tanda.fechaFin} <br/>
+                        <b>Activa:</b> <Tag icon={tanda.activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} color={tanda.activa ? "success" : "warning"}>{tanda.activa? 'Activa': 'Pendiente'}</Tag><br/>
+                        <b>Periodo:</b> {Hola} <br/>
                       </Card>
                     </Col>
                   )
