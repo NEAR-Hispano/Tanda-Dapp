@@ -50,7 +50,10 @@ const CrearTanda = () => {
                     <Select.Option value="mensual">Mensual</Select.Option>
                 </Select>
             </Form.Item>
-            <Form.Item>
+            <Form.Item wrapperCol={{
+                offset: 8,
+                span: 8,
+                }}>
                 <Button type="primary" htmlType="submit">Crear Tanda</Button>
             </Form.Item>
         </Form>
