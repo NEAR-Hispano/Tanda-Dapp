@@ -4,6 +4,7 @@ import { AccountId, MAX_PAGE_SIZE, Money, Periodo } from "../assembly/utils";
 @nearBindgen
 export class Tanda {
     id: string;
+    creador: string;
     nombre: string;
     numIntegrantes:  u64;
     monto: u64;
@@ -21,6 +22,7 @@ export class Tanda {
         this.activa = false;
         this.periodo = periodo;
         this.integrantes = new PersistentVector<Integrante>("I");
+        this.creador = context.sender;
     }
 
     agregarIntegrante(integrante: Integrante): void{

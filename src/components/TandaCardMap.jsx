@@ -8,7 +8,7 @@ export const TandaCardMap = ({tandas}) => {
         <div className="site-card-wrapper">
             <Row >
             { 
-                tandas.map(tanda => <TandaCard tanda={tanda} /> )
+                tandas.map(tanda => <TandaCard key={tanda.id} tanda={tanda} /> )
             }
             </Row>
         </div>

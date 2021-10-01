@@ -13,11 +13,9 @@ export const Encabezado = () => {
     return (
         <Header>
             <p style={{ textAlign: 'right', marginTop: '2.5em',  marginRight: '1em'}}>
-                <h3> 
-                    <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} /> 
-                    <Text style={{color:'white', marginLeft:'0.5em', marginRight:'1em'}}>{window.accountId}!</Text>
-                    <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
-                </h3>
+                <Avatar style={{ backgroundColor: '#87d068' }} icon={<UserOutlined />} /> 
+                <Text style={{color:'white', marginLeft:'0.5em', marginRight:'1em'}}>{window.accountId}!</Text>
+                <Button  type="primary"  shape="round" ghost icon={<LogoutOutlined />} onClick={logout}>Cerrar sesión</Button>
             </p>
         </Header>
     )
