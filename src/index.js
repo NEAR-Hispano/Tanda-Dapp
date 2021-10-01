@@ -8,6 +8,7 @@ window.nearInitPromise = initContract()
   .then(() => {
     ReactDOM.render(
       <App />,
+      //<Counter />,
       document.querySelector('#root')
     )
   })

@@ -1,6 +1,11 @@
 import React from 'react';
 import { Form, Input, Button, Select } from 'antd';
+import { Layout } from 'antd';
 import 'antd/dist/antd.css';
+
+//Componentes
+import Encabezado from './Encabezado'
+import PieDePagina from './PieDePagina'
 
 const EditarTanda = () => {
   const [editarTandaForm] = Form.useForm();
@@ -41,7 +46,9 @@ const EditarTanda = () => {
 
   return (
     <>
-      <Form name="buscarTanda" labelCol={{span: 8,}} autoComplete="off" wrapperCol={{span: 8}}
+      <Layout className="layout" style={{background:'#bfc9d8'}}>
+
+        <Form name="buscarTanda" labelCol={{span: 8,}} autoComplete="off" wrapperCol={{span: 8}}
         onFinish={onSearch}>
         <Form.Item label="ID Tanda" name="idTanda"
             rules={[{
@@ -93,7 +100,8 @@ const EditarTanda = () => {
         }}>
               <Button type="primary" htmlType="submit">Guardar</Button>
           </Form.Item>
-      </Form>
+      </Form>   
+      </Layout>
     </>
   );
 }
