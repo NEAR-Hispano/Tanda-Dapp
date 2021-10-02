@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import App from './App'
 import { initContract } from './utils'
-import Counter from './components/Counter';
+import 'tachyons'; 
 
 window.nearInitPromise = initContract()
   .then(() => {
