@@ -24,21 +24,21 @@ const CrearTanda = () => {
                 rules={[{
                     required: true,
                     message: 'Introduce el nombre de la tanda',},]}>
-                <Input />
+                <Input placeholder={'Introduce el nombre de la tanda'} />
             </Form.Item>
 
             <Form.Item label="Número de integrantes" name="numIntegrantes"
                 rules={[{
                     required: true,
                     message: 'Introduce el número de integrantes',},]}>
-                <Input />
+                <Input placeholder={'Introduce el número de integrantes'} />
             </Form.Item>
 
             <Form.Item label="Monto" name="monto"
                 rules={[{
                     required: true,
                     message: 'Introduce el monto a ahorrar',},]}>
-                <Input />
+                <Input placeholder={'Introduce el monto a ahorrar'} />
             </Form.Item>
 
             <Form.Item label="Periodo" name="periodo" rules={[{required: true,},]}>

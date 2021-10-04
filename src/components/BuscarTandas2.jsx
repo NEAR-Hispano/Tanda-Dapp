@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-
 import { TandaCardMap } from './TandaCardMap';
+import { SearchOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
 
 function BuscarTandas2(){
@@ -49,8 +49,7 @@ function BuscarTandas2(){
     return(
         <>
         <span>
-            <h3>Buscar Tanda</h3>
-            <Input onChange={onSearchChange}/>
+            <SearchOutlined style={{margin: '5px'}} /><Input onChange={onSearchChange} placeholder={'Buscar tanda'} style={{width: '18em'}}/>
         </span>
         {/* TandaCardMap requiere un arreglo, vamos a evaluar cuál arreglo mandarle.
           * Si el campo de búsqueda está vacío, entonces mandamos las tandas completas, desde el estado.

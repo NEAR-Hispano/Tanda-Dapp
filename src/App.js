@@ -1,33 +1,20 @@
 import 'regenerator-runtime/runtime'
-import React from 'react'
-import { login, logout } from './utils'
+import React from 'react';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import './global.css'
-import { Layout, Menu, Breadcrumb, Card, Col, Row, Carousel, Button, Tag, Divider, Avatar, Tabs } from 'antd';
-
-import { LoginOutlined, LogoutOutlined, CheckCircleOutlined, MinusCircleOutlined, UserOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
-import { Periodos } from './utils/enums';
-const { Header, Content, Footer } = Layout;
 
 import getConfig from './config';
 
-
-import { TandaCardMap } from './components/TandaCardMap';
 import { Bienvenida } from './components/Bienvenida';
 import { Encabezado } from './components/Encabezado';
 import { PieDePagina } from './components/PieDePagina';
 
-import AdministrarTanda from './components/AdministrarTanda';
 import BuscarTandas from './components/BuscarTandas';
 import CrearTanda from './components/CrearTanda';
 import EditarTanda from './components/EditarTanda';
-import MisTandas from './components/MisTandas';
 import Principal from './components/Principal';
 import InfoTanda from './components/InfoTanda';
-import SinSesion from './components/SinSesion';
-import Nav from './components/Nav';
-
 
 const { networkId } = getConfig(process.env.NODE_ENV || 'development')
 
