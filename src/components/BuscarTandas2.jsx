@@ -3,7 +3,7 @@ import { TandaCardMap } from './TandaCardMap';
 import { SearchOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
 
-function BuscarTandas2(){
+function BuscarTandas2({origen}){
     
     //Hook para guardar tanto el arreglo de tandas cómo lo que esté en la búsqueda
     const [tandaInfo, setTandaInfo] = useState({tandas: [], campoBusqueda: ''});
@@ -17,10 +17,18 @@ function BuscarTandas2(){
         () => {
             //Si está hecha la conexión...
             if (window.walletConnection.isSignedIn()) {
-                //Llamamos al contrato para consultar las Tandas existentes
-                window.contract.consultarTandas({})
-                //Y actualizamos el estado
-                .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+
+                if(origen === 'principal'){
+                    //Llamamos al contrato para consultar las Tandas existentes
+                    window.contract.consultarTandas({})
+                    //Y actualizamos el estado
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                }
+                else if (origen === 'mis-tandas'){
+                    window.contract.consultarTandasPorOwner({})
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                }
+                
             }
         },
         []

@@ -26,11 +26,13 @@ export class Tanda {
     }
 
     agregarIntegrante(integrante: Integrante): void{
-        if (<i32>this.numIntegrantes < this.integrantes.length) {
+        if (this.integrantes.length < <i32>this.numIntegrantes) {
             this.integrantes.push(integrante);
-            logging.log(`Integrante nuevo ${integrante.accountId}  agregado exitosamente`);
+            logging.log(`Integrante nuevo ${integrante.accountId} agregado exitosamente`);
         }
-        logging.log(`La Tanda se encuentra llena, ya no existen lugares disponibles.`);
+        else{
+            logging.log(`La Tanda se encuentra llena, ya no existen lugares disponibles.`);
+        }
     }
     
     consultarIntegrantes(): PersistentVector<Integrante>{

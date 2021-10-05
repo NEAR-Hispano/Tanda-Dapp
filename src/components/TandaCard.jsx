@@ -10,7 +10,7 @@ export const TandaCard = ({tanda}) => {
     return (
         <Col >
             <Card id={`card_${tanda.id}`} hoverable title={tanda.nombre} bordered={true} style={{ width: '300px', margin: 16, textAlign: 'left' }} >
-                <b>Creador:</b> {window.accountId} <br/>
+                <b>Creador:</b> {tanda.creador} <br/>
                 <b>Activa:</b> <Tag icon={activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} color={activa ? "success" : "warning"}>{activa? 'Activa': 'Pendiente'}</Tag><br/>
                 <TandaModal tanda={tanda} setActiva={setActiva} activa={activa} />
             </Card>
