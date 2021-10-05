@@ -16,11 +16,13 @@ function Principal() {
       <Tabs type="card" style={{ margin: '1em' }}>
         <TabPane tab="Tandas" key="1">
           <div className='tc'>
-            <BuscarTandas2/>
+            <BuscarTandas2 origen='principal'/>
           </div>
         </TabPane>
         <TabPane tab="Mis Tandas" key="2">
-          <p>Content of Tab Pane 2</p>
+        <div className='tc'>
+            <BuscarTandas2 origen='mis-tandas'/>
+          </div>
         </TabPane>
         <TabPane tab="Crear Tanda" key="3">
           <CrearTanda/>

@@ -22,8 +22,11 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   // Se requiere un periodo de mínimo 1 (en días).
   assert(periodo > 0, "El periodo no puede ser menor a 1.");
 
+  //Creamos un objeto de tipo Tanda. Puedes validar el modelo en /models/model.ts
   let tanda = new Tanda(nombreTanda, integrantes, monto, periodo);
 
+  //Este mensaje va a regresarlo la consola si todo es exitoso.
+  //También se mostrará en la blockchain.
   logging.log(
     'Creando tanda"' 
       + nombreTanda
@@ -37,7 +40,10 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
       + periodos.get(periodo)
       + '"'
   )
+
+  //Envíamos el objeto creado al mapa de tandas.
   tandas.set(tanda.id, tanda);
+  //Y la clave al arreglo de tandas.
   keys.push(tanda.id);
 }
 
@@ -47,6 +53,19 @@ export function consultarTandas(): Array<Tanda | null>{
   let result = new Array<Tanda | null>(numTandas);
   for (let i = 0; i < numTandas; i++) {
     result[i] = tandas.get(keys[i + startIndex]);
+  }
+  return result;
+}
+
+export function consultarTandasPorOwner(): Array<Tanda | null>{
+  let numTandas = min(MAX_PAGE_SIZE, keys.length);
+  let startIndex = keys.length - numTandas;
+  let result = new Array<Tanda | null>();
+  for (let i = 0; i < numTandas; i++) {
+    const tanda = tandas.get(keys[i + startIndex])
+    if(tanda && tanda.creador.toString() == context.sender.toString()){
+      result.push(tanda);
+    }
   }
   return result;
 }
