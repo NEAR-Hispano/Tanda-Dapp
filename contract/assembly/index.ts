@@ -179,6 +179,7 @@ export function agregarIntegrantePago(key: string, fechaPago: string): bool {
     // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
     let historialPagoTanda = pagos.get(key);
     if (!historialPagoTanda) {
+      logging.log(`Pagos esta vacio ${pagos.length}`);
       // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
       historialPagoTanda = new PersistentUnorderedMap<string, Array<Pago>>('h');
       historialPagoTanda.set(context.predecessor, new Array<Pago>());
