@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { TandaCardMap } from './TandaCardMap';
 import { SearchOutlined } from '@ant-design/icons';
-import { Input } from 'antd';
+import { Input, Button } from 'antd';
 
 function BuscarTandas2({origen}){
     
     //Hook para guardar tanto el arreglo de tandas cómo lo que esté en la búsqueda
-    const [tandaInfo, setTandaInfo] = useState({tandas: [], campoBusqueda: ''});
+    const [tandaInfo, setTandaInfo] = useState({tandas: [], campoBusqueda: '', misTandas: false});
 
     //Hook para guardar las tandas filtradas
     const [tandasFiltradas, setTandasFiltradas] = useState([])
@@ -22,11 +22,11 @@ function BuscarTandas2({origen}){
                     //Llamamos al contrato para consultar las Tandas existentes
                     window.contract.consultarTandas({})
                     //Y actualizamos el estado
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: false})})
                 }
                 else if (origen === 'mis-tandas'){
                     window.contract.consultarTandasPorOwner({})
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
                 }
                 
             }
@@ -53,17 +53,28 @@ function BuscarTandas2({origen}){
         //Esto va a hacer que el useEffect de arriba se ejecute, lo que hará que se carguen las nuevas tandas
     }
 
+
+    const handlePago = () => {
+
+        
+
+        window.contract.agregarIntegrantePago({key:'63472608', semanaId: '1', amount: 1}).then(response =>{
+            console.log(response, window.accountId);
+        });
+    }
+
     //Regresamos solo 2 componentes, nuestro Input y nuestro mapa de Tandas
     return(
         <>
         <span>
             <SearchOutlined style={{margin: '5px'}} /><Input onChange={onSearchChange} placeholder={'Buscar tanda'} style={{width: '18em'}}/>
         </span>
+        <Button type='primary' onClick={handlePago}>Pagar</Button>
         {/* TandaCardMap requiere un arreglo, vamos a evaluar cuál arreglo mandarle.
           * Si el campo de búsqueda está vacío, entonces mandamos las tandas completas, desde el estado.
           * Pero si no, entonces significa que hay tandas filtradas, y mandamos ese arreglo.
           * Todo esto es para que nos muestre todas las tandas si no hemos buscado nada.*/}
-        <TandaCardMap tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} />
+        <TandaCardMap tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} misTandas={tandaInfo.misTandas} />
         </>
     )
 }

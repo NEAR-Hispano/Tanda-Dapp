@@ -180,9 +180,11 @@ export function cambiarEstadoTanda(key: string): Tanda | null {
 export function editarTanda(
   key: string, 
   nombreTanda: string = "",
-  integrantes: i32 = 0,
+  integrantes:  u64 = 0,
   monto: u64 = 0,
-  periodo: u64 = 0): Tanda | null {
+  periodo: u64 = 0,
+  fechaInicio: string = "",
+  fechaFin: string = ""): Tanda | null {
 
   //Validando inputs
   assert(key != "", "El campo de clave no debe estar vacío.");
@@ -190,10 +192,16 @@ export function editarTanda(
   let tanda = tandas.get(key);
 
   if(tanda){
-    if(nombreTanda != "") tanda.nombre = nombreTanda;
-    if(monto != 0 && !tanda.activa) tanda.monto = monto;
-    if(integrantes != 0 && !tanda.activa) tanda.numIntegrantes = integrantes;
-    if(periodo != 0 && !tanda.activa) tanda.periodo = periodo;
+
+
+    tanda.nombre = nombreTanda || nombreTanda;
+    if (!tanda.activa) {
+      tanda.monto = monto || tanda.monto;
+      tanda.numIntegrantes = integrantes || tanda.numIntegrantes;
+      tanda.periodo = periodo || tanda.periodo;
+      tanda.fechaInicio = fechaInicio || tanda.fechaInicio; 
+      tanda.fechaFinal = fechaFin || tanda.fechaFinal; 
+    }
 
     tandas.set(tanda.id, tanda);
     return tandas.get(tanda.id);

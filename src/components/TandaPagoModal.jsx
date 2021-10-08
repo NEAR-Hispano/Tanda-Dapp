@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Button, Tag, Spin } from 'antd';
 import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
-import { Periodos } from './../utils/enums';
+import { Periodos } from '../utils/enums';
+import moment from 'moment';
 
-export const TandaModal = ({tanda, setActiva, activa}) => {
+export const TandaPagoModal = ({tanda, setActiva, activa}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
     
+    console.log('FECHA', moment().format('YYYY-MM-DD'));
     const handleActivar = () =>{
         setLoading(true);
         window.contract.cambiarEstadoTanda({key: tanda.id}).then((tandaActualizada) =>{
@@ -19,7 +21,7 @@ export const TandaModal = ({tanda, setActiva, activa}) => {
 
     const handleModal = () => {
         let integrantes = [];
-        window.contract.consultarIntegrantes({key:'63472608'}).then(response => {
+        window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
             integrantes = response;
         });
 
@@ -28,7 +30,7 @@ export const TandaModal = ({tanda, setActiva, activa}) => {
             content: (
                 <>
                 <Spin spinning={loading} delay={500}>
-                    <b>Integrantes:</b> {integrantes.length}/{tanda.numIntegrantes} <br/>
+                    <b>Integrante hahahs:</b> {integrantes.length}/{tanda.numIntegrantes} <br/>
                     <b>Monto:</b> {tanda.monto} <br/>
                     <b>Fecha Inicio:</b> {tanda.fechaInicio} <br/>
                     <b>Fecha Fin:</b> {tanda.fechaFinal} <br/>
@@ -38,13 +40,12 @@ export const TandaModal = ({tanda, setActiva, activa}) => {
                 </>
             ),
         };
-        console.log('STATUS ',loading);
         modal.confirm(config);
     }
 
     return (
         <>
-            <Button type="primary" style={{marginLeft:'12em'}} onClick={handleModal} >Ver más</Button>
+            <Button type="primary" style={{marginLeft:'12em'}} onClick={handleModal} >Pagar</Button>
             {/* `contextHolder` should always under the context you want to access */}
             {contextHolder}
         </>

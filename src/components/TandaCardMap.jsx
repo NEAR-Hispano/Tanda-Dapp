@@ -2,13 +2,15 @@ import React from 'react';
 import { Row } from 'antd';
 import 'antd/dist/antd.css';
 import { TandaCard } from './TandaCard';
+import { TandaPagoCard } from './TandaPagoCard';
 
-export const TandaCardMap = ({tandas}) => {
+export const TandaCardMap = ({tandas, misTandas}) => {
     return (
         <div className="site-card-wrapper">
             <Row >
             { 
-                tandas.map(tanda => <TandaCard key={tanda.id} tanda={tanda} /> )
+                misTandas ? tandas.map(tanda => <TandaPagoCard key={tanda.id} tanda={tanda} misTandas={misTandas} /> ) :
+                tandas.map(tanda => <TandaCard key={tanda.id} tanda={tanda} misTandas={misTandas} /> )
             }
             </Row>
         </div>
