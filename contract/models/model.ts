@@ -54,7 +54,9 @@ export const keys = new PersistentVector<string>("k");
 
 //Almacenamiento para usuarios
 export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
-//export const clavesUsuarios = new PersistentVector<string>("s");
+
+//Almacenamiento para los pagos
+export const pagos = new PersistentUnorderedMap<string, PersistentUnorderedMap<string,Array<Pago>>>("p");
 
 @nearBindgen
 export class Usuario {
@@ -72,45 +74,20 @@ export class Usuario {
 @nearBindgen
 export class Integrante {
     public accountId: AccountId;
-    public pagos: PersistentMap<string, Array<Pago>>;
     
     constructor(accountId: AccountId){
         this.accountId =accountId;
-        this.pagos =  new PersistentMap<string, Array<Pago>>("p");
     }
     
-    agregarPago(semanaId: string, pago: Pago): void{
-        const periodoPagos = this.pagos.get(semanaId);
-        if(periodoPagos){
-            periodoPagos.push(pago);
-            logging.log(`El integrante ${this.accountId} ha realizado un pago de ${pago.monto} exitosamente`);
-        }
-        logging.log(`Periodo de pagos no encontrado`);
-    }
-
-    consultarPagos(semanaId: string): Array<Pago> | null {
-        const periodoPagos = this.pagos.get(semanaId);
-        if(periodoPagos){
-            const numMessages = min(MAX_PAGE_SIZE, periodoPagos.length);
-            const startIndex = periodoPagos.length - numMessages;
-            const result = new Array<Pago>(numMessages);
-            for(let i = 0; i < numMessages; i++) {
-                result[i] = periodoPagos[i + startIndex];
-            }
-            return result;
-        }
-        return null;
-    }
+    
 }
 
 @nearBindgen
 export class Pago {
-    public tandaId: string;
     public monto: Money;
     public fechaPago: string;
 
-    constructor(tandaId: string, monto: Money, fechaPago: string){
-        this.tandaId = tandaId;
+    constructor(monto: Money, fechaPago: string){
         this.monto = monto;
         this.fechaPago = fechaPago;
     }
