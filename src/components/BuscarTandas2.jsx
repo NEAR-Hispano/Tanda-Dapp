@@ -3,6 +3,7 @@ import { TandaCardMap } from './TandaCardMap';
 import { SearchOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
 
+//Recibimos un parámetro para ver desde donde se llamó la función.
 function BuscarTandas2({origen}){
     
     //Hook para guardar tanto el arreglo de tandas cómo lo que esté en la búsqueda
@@ -17,15 +18,21 @@ function BuscarTandas2({origen}){
         () => {
             //Si está hecha la conexión...
             if (window.walletConnection.isSignedIn()) {
-
+                //Evaluamos desde donde se llamó esta ventana
+                //Si es de la vista principal, va a mostrar toda las tandas.
                 if(origen === 'principal'){
                     //Llamamos al contrato para consultar las Tandas existentes
                     window.contract.consultarTandas({})
                     //Y actualizamos el estado
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
                 }
+                //Si es de la vista de Mis Tandas, solo mostramos nuestras tandas.
                 else if (origen === 'mis-tandas'){
-                    window.contract.consultarTandasPorOwner({})
+                    window.contract.consultarTandasInscritas({})
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                }
+                else if (origen === 'administrar-tandas'){
+                    window.contract.consultarTandasCreadas({})
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
                 }
                 
@@ -56,6 +63,7 @@ function BuscarTandas2({origen}){
     //Regresamos solo 2 componentes, nuestro Input y nuestro mapa de Tandas
     return(
         <>
+        {/* Este es el Input para la búsqueda*/}
         <span>
             <SearchOutlined style={{margin: '5px'}} /><Input onChange={onSearchChange} placeholder={'Buscar tanda'} style={{width: '18em'}}/>
         </span>
@@ -63,7 +71,7 @@ function BuscarTandas2({origen}){
           * Si el campo de búsqueda está vacío, entonces mandamos las tandas completas, desde el estado.
           * Pero si no, entonces significa que hay tandas filtradas, y mandamos ese arreglo.
           * Todo esto es para que nos muestre todas las tandas si no hemos buscado nada.*/}
-        <TandaCardMap tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} />
+        <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} />
         </>
     )
 }

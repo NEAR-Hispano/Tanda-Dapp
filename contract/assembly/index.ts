@@ -1,5 +1,5 @@
-import { logging, context, datetime } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante, Pago} from "../models/model";
+import { logging, context, datetime, PersistentUnorderedMap, MapEntry, PersistentVector } from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
 import { AccountId, MAX_PAGE_SIZE, periodos} from './utils';
 
@@ -28,7 +28,7 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   //Este mensaje va a regresarlo la consola si todo es exitoso.
   //También se mostrará en la blockchain.
   logging.log(
-    'Creando tanda"' 
+    'Creando tanda "' 
       + nombreTanda
       + '" en la cuenta "' 
       + context.sender
@@ -45,12 +45,71 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   tandas.set(tanda.id, tanda);
   //Y la clave al arreglo de tandas.
   keys.push(tanda.id);
+
+  registrarUsuario(context.sender, tanda.id, true);
 }
 
+export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool): void{
+
+  const usuario = usuarios.get(idCuenta);
+  if(usuario){
+    creada ? usuario.tandasCreadas.push(idTanda) : usuario.tandasInscritas.push(idTanda);
+    usuarios.set(idCuenta, usuario);
+  }
+  else{
+    let nuevoUsuario = new Usuario(idCuenta);
+    creada ? nuevoUsuario.tandasCreadas.push(idTanda) : nuevoUsuario.tandasInscritas.push(idTanda);
+    usuarios.set(idCuenta, nuevoUsuario);
+  }
+}
+
+export function consultarUsuarios(): MapEntry<string, Usuario>[] {
+  return usuarios.entries();
+}
+
+export function consultarClavesUsuarios(): Array<string> {
+  return usuarios.keys();
+}
+
+export function consultarInfoUsuarios(): Array<Usuario> {
+  return usuarios.values();
+}
+
+export function consultarTandasCreadas(idCuenta: string = context.sender): Array<Tanda | null> | null{
+  const usuario = usuarios.get(idCuenta);
+  
+  return usuario ? buscarTandas(usuario.tandasCreadas) : null
+}
+
+export function consultarTandasInscritas(idCuenta: string = context.sender): Array<Tanda | null> | null {
+  const usuario = usuarios.get(idCuenta);
+
+  return usuario ? buscarTandas(usuario.tandasInscritas) : null;
+}
+
+function buscarTandas(listaTandas: Array<string>): Array<Tanda | null> | null{
+    let result = new Array<Tanda | null>();
+
+    for (let i = 0; i < listaTandas.length; i++) {
+      result.push(tandas.get(listaTandas[i]));
+    }
+    return result;
+}
+
+// Esta función regresa las n últimas tandas.
+// n siendo el valor que está en la variable MAX_PAGE_SIZE 
 export function consultarTandas(): Array<Tanda | null>{
+
+  //Obtenemos el valor menor entre el máximo y la cantidad de tandas que hay.
   let numTandas = min(MAX_PAGE_SIZE, keys.length);
+
+  //Y definimos en que índice de las llaves vamos a empezar.
   let startIndex = keys.length - numTandas;
+
+  //Declaramos nuestro objeto de arreglo
   let result = new Array<Tanda | null>(numTandas);
+
+  //E iteramos, llenando así nuestro arreglo.
   for (let i = 0; i < numTandas; i++) {
     result[i] = tandas.get(keys[i + startIndex]);
   }
@@ -87,6 +146,7 @@ export function agregarIntegrante(key: string, accountId: AccountId): void {
   const tanda = tandas.get(key);
   if (tanda){
     tanda.agregarIntegrante(integrante);
+    registrarUsuario(accountId, key, false);
   }
 }
 
@@ -120,6 +180,7 @@ export function agregarIntegrantePago(key: string, semanaId: string): bool {
     const startIndex = tanda_length - numMessages;
     const monto = context.attachedDeposit;
 
+    logging.log('Predecessor: ' + context.predecessor.toString());
     for(let i = 0; i < numMessages; i++) {
       if(integrantes[ i + startIndex].accountId == context.predecessor){
         const pago = new Pago(key, monto, datetime.block_datetime().toString());
@@ -155,6 +216,9 @@ export function cambiarEstadoTanda(key: string): Tanda | null {
   let tanda = tandas.get(key);
   
   if(tanda){
+    assert(tanda.creador == context.sender, "No cuentas con autorización para modificar esta Tanda");
+    assert(tanda.integrantes.length > 0, "No se puede inicializar la Tanda sin integrantes.");
+
     if(tanda.activa){
       tanda.activa = false;
       const date = datetime.block_datetime();

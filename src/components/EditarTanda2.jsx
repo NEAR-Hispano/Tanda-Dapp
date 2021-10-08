@@ -3,7 +3,7 @@ import { Form, Input, Button, Select, Layout } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
 
-const EditarTanda = () => {
+const EditarTanda2 = () => {
   const [editarTandaForm] = Form.useForm();
   const [key, setKey] = React.useState();
 
@@ -42,20 +42,9 @@ const EditarTanda = () => {
 
   return (
     <>
-        <Form name="buscarTanda" labelCol={{span: 8,}} autoComplete="off" wrapperCol={{span: 8}}
-        onFinish={onSearch}>
-        <Form.Item label={<span><SearchOutlined style={{margin: '5px'}} />ID Tanda</span>} name="idTanda"
-            rules={[{
-              required: true,
-              message: 'Introduce el ID a consultar',},]}>
-          <Input onChange={onKeyChange} placeholder={'Buscar tanda'} style={{width: '30em'}}/>
-        </Form.Item>
-        <Form.Item wrapperCol={{span: 8, offset: 8}}>
-          <Button type="primary" htmlType="submit">Buscar Tanda</Button>
-        </Form.Item>
-      </Form>
+    <Layout className="layout" style={{background:'#bfc9d8'}}>
+      <h1>Tandem DApp</h1>
       <br/>
-
       <Form name="editarTanda" onFinish={onFinish} labelCol={{span: 8,}} wrapperCol={{span: 8,}}
             autoComplete="off" form={editarTandaForm}>
           <Form.Item label="Nombre Tanda" name="nombreTanda"
@@ -94,9 +83,10 @@ const EditarTanda = () => {
         }}>
               <Button type="primary" htmlType="submit">Guardar</Button>
           </Form.Item>
-      </Form>   
+      </Form> 
+      </Layout>  
     </>
   );
 }
 
-export default EditarTanda;
+export default EditarTanda2;
