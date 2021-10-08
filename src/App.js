@@ -8,9 +8,9 @@ import { Bienvenida } from './components/Bienvenida';
 import { Encabezado } from './components/Encabezado';
 import { PieDePagina } from './components/PieDePagina';
 
-import EditarTanda from './components/EditarTanda';
 import EditarTanda2 from './components/EditarTanda2';
 import Principal from './components/Principal';
+import AdministrarTanda from './components/AdministrarTanda';
 
 export default function App() {
   
@@ -27,7 +27,8 @@ export default function App() {
       <div className='tc'>
         <Switch>
           <Route exact path="/" component={Principal}/>
-          <Route exact path="/editar-tanda" component={EditarTanda2}/>
+          <Route path="/administrar-tanda/editar-tanda/:id" component={EditarTanda2}/>
+          <Route path="/administrar-tanda/:id" component={AdministrarTanda}/>
         </Switch>
       </div>
       </Router>

@@ -54,7 +54,6 @@ export const keys = new PersistentVector<string>("k");
 
 //Almacenamiento para usuarios
 export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
-//export const clavesUsuarios = new PersistentVector<string>("s");
 
 @nearBindgen
 export class Usuario {

@@ -135,7 +135,7 @@ export function consultarTanda(key: string): Tanda | null {
 }
 
 
-export function agregarIntegrante(key: string, accountId: AccountId): void {
+export function agregarIntegrante(key: string, accountId: AccountId = context.sender): void {
 
   //Validando inputs
   assert(accountId != "", "El campo de usuario no debe estar vacío.");

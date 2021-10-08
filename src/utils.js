@@ -26,7 +26,9 @@ export async function initContract() {
       'cambiarEstadoTanda', 
       'consultarTandasPorOwner',
       'consultarTandasInscritas',
-      'consultarTandasCreadas'],
+      'consultarTandasCreadas',
+      'consultarIntegrantes',
+      'agregarIntegrante'],
   })
 }
 

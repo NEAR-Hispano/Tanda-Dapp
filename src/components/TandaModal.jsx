@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import ReactDOM from 'react-dom';
+import { Link } from 'react-router-dom';
 import { Modal, Button, Tag, Spin } from 'antd';
 import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { Periodos } from './../utils/enums';
+import { UnirseATanda } from './UnirseATanda';
 
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
@@ -32,11 +33,18 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                     <b>Activa:</b> <Tag 
                         icon={activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} 
                         color={activa ? "success" : "warning"} 
-                        onClick={origen === 'mis-tandas' ? handleActivar : null} 
+                        onClick={origen === 'administrar-tandas' ? handleActivar : null} 
                         style={{ cursor: 'pointer' }}>
                             {activa? 'Activa': 'Pendiente'}</Tag><br/>
                     <b>Periodo:</b> {Periodos[tanda.periodo]} <br/>
-                    {origen === 'mis-tandas' ? <Button type="primary">Editar</Button> : null}
+                    {origen === 'administrar-tandas' ? (
+                        <Link to={`/administrar-tanda/${tanda.id}`}>
+                            <Button type="primary">Administrar</Button> 
+                        </Link>)
+                        : null}
+                    {origen === 'principal' ? 
+                        <UnirseATanda tanda={tanda}/> 
+                        : null}
                 </Spin>  
                 </>
             ),
