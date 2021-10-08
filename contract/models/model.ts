@@ -21,12 +21,11 @@ export class Tanda {
         this.monto = monto;
         this.activa = false;
         this.periodo = periodo;
-        this.integrantes = new PersistentVector<Integrante>("I");
+        this.integrantes = new PersistentVector<Integrante>(`${context.blockIndex + 1}`);
         this.creador = context.sender;
     }
 
     agregarIntegrante(integrante: Integrante): void{
-        logging.log(`Hay: ${this.integrantes.length} integrantes.`);
 
         if (this.integrantes.length < <i32>this.numIntegrantes) {
             this.integrantes.push(integrante);

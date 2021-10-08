@@ -148,7 +148,7 @@ export function agregarIntegrante(key: string, accountId: AccountId): void {
     tanda.agregarIntegrante(integrante);
     registrarUsuario(accountId, key, false);
   }
-}
+} 
 
 export function consultarIntegrantes(key: string): Array<string> | null {
 
