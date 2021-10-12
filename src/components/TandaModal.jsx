@@ -8,7 +8,6 @@ import { UnirseATanda } from './UnirseATanda';
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
-
     
     const handleActivar = () =>{
         setLoading(true);
@@ -21,6 +20,11 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     }
 
     const handleModal = () => {
+        let integrantes = [];
+        window.contract.consultarIntegrantes({key:'63472608'}).then(response => {
+            integrantes = response;
+        });
+
         const config = {
             title: `${tanda.nombre}`,
             content: (

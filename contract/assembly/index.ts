@@ -1,5 +1,5 @@
-import { logging, context, datetime, PersistentUnorderedMap, MapEntry, PersistentVector } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios} from "../models/model";
+import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap } from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
 import { AccountId, MAX_PAGE_SIZE, periodos} from './utils';
 
@@ -170,43 +170,57 @@ export function consultarIntegrantes(key: string): Array<string> | null {
   return null;
 }
 
-export function agregarIntegrantePago(key: string, semanaId: string): bool {
+export function agregarIntegrantePago(key: string, fechaPago: string): bool {
+  // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
   if (tanda){
-    const integrantes = tanda.consultarIntegrantes();
-    
-    const tanda_length = integrantes.length;
-    const numMessages = min(MAX_PAGE_SIZE, tanda_length);
-    const startIndex = tanda_length - numMessages;
     const monto = context.attachedDeposit;
-
-    logging.log('Predecessor: ' + context.predecessor.toString());
-    for(let i = 0; i < numMessages; i++) {
-      if(integrantes[ i + startIndex].accountId == context.predecessor){
-        const pago = new Pago(key, monto, datetime.block_datetime().toString());
-        integrantes[ i + startIndex].agregarPago(semanaId, pago);
-        return true;
-      }
+    const pago = new Pago(monto, fechaPago);
+    // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
+    let historialPagoTanda = pagos.get(key);
+    if (!historialPagoTanda) {
+      logging.log(`Pagos esta vacio ${pagos.length}`);
+      // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
+      historialPagoTanda = new PersistentUnorderedMap<string, Array<Pago>>('h');
+      historialPagoTanda.set(context.predecessor, new Array<Pago>());
+      logging.log(`SE CREO UN NUEVO HISTORIAL DE PAGOS`);
     }
+
+    // Verificamos si esa tanda contiene al menos el registro de un pago
+    if (historialPagoTanda) {
+      logging.log(`historial pagos ${historialPagoTanda ? historialPagoTanda.length: -9999}`);
+      // Obtenemos la lista de los pagos realizados de un integrante a una tanda
+      let historialPagos = historialPagoTanda.get(context.predecessor);
+      if (historialPagos){
+        // Añadimos un nuevo pago al registro de pagos del integrante
+        historialPagos.push(pago);
+        logging.log(`Se añadio un nuevo pago de ${context.predecessor.toString()} exitosamente`);
+        return true;
+      }else {
+        // En caso de que aun no existan registros de pago del integrante
+        historialPagoTanda.set(context.predecessor, [pago]);
+        logging.log(`El primer pago de ${context.predecessor.toString()} ha sido registrado exitosamente`);
+        return true;
+      } 
+    }
+    logging.log(`historial pagos esta vacio`);
   }
+  logging.log(`La Tanda ${key} no existe`);
   return false;
 }
 
-export function consultarIntegrantePago(key: string, semanaId: string): Array<Pago> | null {
+export function consultarIntegrantePago(key: string, accountId: string): Array<Pago> | null {
   const tanda = tandas.get(key);
   if (tanda){
-    const integrantes = tanda.consultarIntegrantes();
-    
-    const tanda_length = integrantes.length;
-    const numMessages = min(MAX_PAGE_SIZE, tanda_length);
-    const startIndex = tanda_length - numMessages;
-
-    for(let i = 0; i < numMessages; i++) {
-      if(integrantes[ i + startIndex].accountId == context.predecessor){
-        return integrantes[ i + startIndex].consultarPagos(semanaId);
-      }
+    const historialPagosTanda = pagos.get(key);
+    if (historialPagosTanda) {
+      const historialPagos = historialPagosTanda.get(accountId);
+      return historialPagos;
     }
+    logging.log(`El integrante ${accountId} no ha realizado pagos en la Tanda ${key}`);
+    return null;
   }
+  logging.log(`La Tanda ${key} no existe`);
   return null;
 }
 
@@ -244,9 +258,11 @@ export function cambiarEstadoTanda(key: string): Tanda | null {
 export function editarTanda(
   key: string, 
   nombreTanda: string = "",
-  integrantes: i32 = 0,
+  integrantes:  u64 = 0,
   monto: u64 = 0,
-  periodo: u64 = 0): Tanda | null {
+  periodo: u64 = 0,
+  fechaInicio: string = "",
+  fechaFin: string = ""): Tanda | null {
 
   //Validando inputs
   assert(key != "", "El campo de clave no debe estar vacío.");
@@ -254,10 +270,16 @@ export function editarTanda(
   let tanda = tandas.get(key);
 
   if(tanda){
-    if(nombreTanda != "") tanda.nombre = nombreTanda;
-    if(monto != 0 && !tanda.activa) tanda.monto = monto;
-    if(integrantes != 0 && !tanda.activa) tanda.numIntegrantes = integrantes;
-    if(periodo != 0 && !tanda.activa) tanda.periodo = periodo;
+
+
+    tanda.nombre = nombreTanda || nombreTanda;
+    if (!tanda.activa) {
+      tanda.monto = monto || tanda.monto;
+      tanda.numIntegrantes = integrantes || tanda.numIntegrantes;
+      tanda.periodo = periodo || tanda.periodo;
+      tanda.fechaInicio = fechaInicio || tanda.fechaInicio; 
+      tanda.fechaFinal = fechaFin || tanda.fechaFinal; 
+    }
 
     tandas.set(tanda.id, tanda);
     return tandas.get(tanda.id);

@@ -1,7 +1,8 @@
 import React from 'react';
-import { Form, Input, Button, Select, Layout } from 'antd';
+import { Form, Input, Button, Select, Layout, DatePicker } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
+import moment from 'moment';
 
 const EditarTanda = () => {
   const [editarTandaForm] = Form.useForm();
@@ -26,18 +27,27 @@ const EditarTanda = () => {
     })
   }
 
-  const onFinish = (values) => {
+  const substraerFecha = (fecha) => {
+    return moment(fecha).format('YYYY-MM-DD');
+  }
 
+  const onFinish = (values) => {
     window.contract.editarTanda({ 
       key: key.toString(),
       nombreTanda: values.nombreTanda,
-      integrantes: parseInt(values.numIntegrantes,10),
+      integrantes: values.numIntegrantes,
       monto: `${values.monto}`,
-      periodo: '15'
+      periodo: '15',
+      fechaInicio: substraerFecha(values.fechaInicio),
+      fechaFin: substraerFecha(values.fechaFin),
     }).then(info =>{
       console.log(info)
     })
     
+  }
+
+  function onChange(date, dateString) {
+    console.log(date, dateString);
   }
 
   return (
@@ -62,31 +72,45 @@ const EditarTanda = () => {
               rules={[{
                   required: true,
                   message: 'Introduce el nombre de la tanda',},]}>
-              <Input placeholder={'Introduce el nombre de la tanda'}/>
+              <Input placeholder={'Introduce el nombre de la tanda'} style={{width: '30em'}}/>
           </Form.Item>
 
           <Form.Item label="Número de integrantes" name="numIntegrantes"
               rules={[{
                   required: true,
                   message: 'Introduce el número de integrantes',},]}>
-              <Input placeholder={'Introduceel número de integrantes'} />
+              <Input placeholder={'Introduceel número de integrantes'} style={{width: '30em'}} />
           </Form.Item>
 
           <Form.Item label="Monto" name="monto"
               rules={[{
                   required: true,
                   message: 'Introduce el monto a ahorrar',},]}>
-              <Input placeholder={'Introduce el monto a ahorrar'}/>
+              <Input placeholder={'Introduce el monto a ahorrar'} style={{width: '30em'}}/>
           </Form.Item>
 
           <Form.Item label="Periodo" name="periodo" rules={[{required: true,},]}>
               <Select
               placeholder="Selecciona el periodo para ahorrar."
-              allowClear>
+              allowClear style={{width: '30em'}}>
                   <Select.Option value="semanal">Semanal</Select.Option>
                   <Select.Option value="quincenal">Quincenal</Select.Option>
                   <Select.Option value="mensual">Mensual</Select.Option>
               </Select>
+          </Form.Item>
+
+          <Form.Item label="Fecha Inicio" name="fechaInicio"
+              rules={[{
+                  required: false,
+                  message: 'Introduce la fecha de inicio',},]}>
+               <DatePicker onChange={onChange} style={{width: '30em'}}/>
+          </Form.Item>
+
+          <Form.Item label="Fecha Fin" name="fechaFin"
+              rules={[{
+                  required: false,
+                  message: 'Introduce la fecha de fin',},]}>
+               <DatePicker onChange={onChange} style={{width: '30em'}}/>
           </Form.Item>
           <Form.Item wrapperCol={{
           offset: 8,
