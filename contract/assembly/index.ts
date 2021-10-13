@@ -170,12 +170,25 @@ export function consultarIntegrantes(key: string): Array<string> | null {
   return null;
 }
 
+function validarIntegrante (tandaKeys: Array<string> | null, accountId: string) : bool{
+    return tandaKeys ? tandaKeys.includes(accountId) : false;
+}
 export function agregarIntegrantePago(key: string): bool {
   // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
   if (tanda){
     // Almacenamos los valores generales para registrar el contrato
     const cuentaId = context.sender;
+
+    // Validamos que el usuario exista en la tanda
+    const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
+    assert(valido == false, `El integrante ${cuentaId} no es integrante de la tanda`);
+   if (!valido) {
+    logging.log(`El integrante ${cuentaId} no se encuentra registrado en esta tanda`);
+     return false;
+   }
+
+
     const monto = context.attachedDeposit;
     assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
@@ -200,6 +213,7 @@ export function agregarIntegrantePago(key: string): bool {
 
     // Verificamos si esa tanda contiene al menos el registro de un pago
     if (historialPagoTanda) {
+
       // Obtenemos la lista de los pagos realizados de un integrante a una tanda
       let historialPagos = historialPagoTanda.get(cuentaId);
       if (historialPagos){
@@ -236,6 +250,15 @@ export function consultarTandaPagos(key: string): Map<string, Array<Pago>> | nul
 
 export function consultarIntegrantePagos(key: string, accountId: string): Array<Pago>  {
   
+   // Validamos que el usuario exista en la tanda
+   const valido =  validarIntegrante(consultarIntegrantes(key), accountId);
+  
+   assert(valido == false, `El integrante ${accountId} no es integrante de la tanda`);
+   if (!valido) {
+    logging.log(`El integrante ${accountId} no se encuentra registrado en esta tanda`);
+     return [];
+   }
+
   const tanda = tandas.get(key);
   // Consultamos la existencia de la tanda
   if (!tanda){ 
