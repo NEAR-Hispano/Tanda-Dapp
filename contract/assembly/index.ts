@@ -173,6 +173,7 @@ export function consultarIntegrantes(key: string): Array<string> | null {
 function validarIntegrante (tandaKeys: Array<string> | null, accountId: string) : bool{
     return tandaKeys ? tandaKeys.includes(accountId) : false;
 }
+
 export function agregarIntegrantePago(key: string): bool {
   // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
@@ -182,13 +183,8 @@ export function agregarIntegrantePago(key: string): bool {
 
     // Validamos que el usuario exista en la tanda
     const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
-    assert(valido == false, `El integrante ${cuentaId} no es integrante de la tanda`);
-   if (!valido) {
-    logging.log(`El integrante ${cuentaId} no se encuentra registrado en esta tanda`);
-     return false;
-   }
-
-
+    assert(valido, `El integrante ${cuentaId} no es integrante de la tanda`);
+  
     const monto = context.attachedDeposit;
     assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
@@ -198,7 +194,7 @@ export function agregarIntegrantePago(key: string): bool {
     // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
     let historialPagoTanda = pagos.get(key);
     if (!historialPagoTanda) {
-      logging.log(`El historial de pagos esta vacio ${pagos.length}`);
+      logging.log(`El historial de pagos esta vacio`);
 
       //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
       let paymentMap = new Map<string, Array<Pago>>();
@@ -209,6 +205,7 @@ export function agregarIntegrantePago(key: string): bool {
       // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
       pagos.set(key, paymentMap);
       logging.log(`Se instancio exitosamente el registro de pagos`);
+      return true;
     }
 
     // Verificamos si esa tanda contiene al menos el registro de un pago
@@ -219,7 +216,7 @@ export function agregarIntegrantePago(key: string): bool {
       if (historialPagos){
         // Si existen registros de pago, añadimos un nuevo pago al registro de pagos del integrante
         historialPagos.push(nuevoPago);
-        logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente ${historialPagos.length}`);
+        logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente`);
         // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
         pagos.set(key, historialPagoTanda);
         return true;
@@ -253,11 +250,7 @@ export function consultarIntegrantePagos(key: string, accountId: string): Array<
    // Validamos que el usuario exista en la tanda
    const valido =  validarIntegrante(consultarIntegrantes(key), accountId);
   
-   assert(valido == false, `El integrante ${accountId} no es integrante de la tanda`);
-   if (!valido) {
-    logging.log(`El integrante ${accountId} no se encuentra registrado en esta tanda`);
-     return [];
-   }
+   assert(valido, `El integrante ${accountId} no es integrante de la tanda`);
 
   const tanda = tandas.get(key);
   // Consultamos la existencia de la tanda
