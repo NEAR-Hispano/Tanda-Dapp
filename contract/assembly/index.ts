@@ -1,6 +1,6 @@
-import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap, u128 } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos} from "../models/model";
-import { Duration } from 'assemblyscript-temporal';
+import { logging, context, datetime, MapEntry, u128, ContractPromiseBatch } from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos, tandaPeriodos, Periodos} from "../models/model";
+import { Duration , PlainDate } from 'assemblyscript-temporal';
 import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos} from './utils';
 
 export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, periodo: i32): void{
@@ -67,14 +67,6 @@ export function consultarUsuarios(): MapEntry<string, Usuario>[] {
   return usuarios.entries();
 }
 
-export function consultarClavesUsuarios(): Array<string> {
-  return usuarios.keys();
-}
-
-export function consultarInfoUsuarios(): Array<Usuario> {
-  return usuarios.values();
-}
-
 export function consultarTandasCreadas(idCuenta: string = context.sender): Array<Tanda | null> | null{
   const usuario = usuarios.get(idCuenta);
   
@@ -138,7 +130,6 @@ export function consultarTanda(key: string): Tanda | null {
 export function agregarIntegrante(key: string, accountId: AccountId = context.sender): void {
 
   //Validando inputs
-  assert(accountId != "", "El campo de usuario no debe estar vacío.");
   assert(key != "", "El campo de clave no debe estar vacío.");
   
 
@@ -183,13 +174,15 @@ export function agregarIntegrantePago(key: string): bool {
 
     // Validamos que el usuario exista en la tanda
     const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
-    assert(valido, `El integrante ${cuentaId} no es integrante de la tanda`);
+    assert(valido, `El usuario ${cuentaId} no es integrante de la tanda`);
   
     const monto = context.attachedDeposit;
     assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
+    const date = datetime.block_datetime();
+
     // Creamos el objeto del pago
-    const nuevoPago = new Pago(monto, context.blockTimestamp.toString());
+    const nuevoPago = new Pago(monto, date.toString());
 
     // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
     let historialPagoTanda = pagos.get(key);
@@ -212,9 +205,9 @@ export function agregarIntegrantePago(key: string): bool {
     // Verificamos si esa tanda contiene al menos el registro de un pago
     if (historialPagoTanda) {
 
-      // Obtenemos la lista de los pagos realizados de un integrante a una tanda
-      let historialPagos = historialPagoTanda.get(cuentaId);
-      if (historialPagos){
+      if (historialPagoTanda.has(cuentaId)){
+        // Obtenemos la lista de los pagos realizados de un integrante a una tanda
+        let historialPagos = historialPagoTanda.get(cuentaId);
         // Si existen registros de pago, añadimos un nuevo pago al registro de pagos del integrante
         historialPagos.push(nuevoPago);
         logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente`);
@@ -274,34 +267,65 @@ export function consultarPagos(): MapEntry<string, Map<string, Array<Pago>>>[]  
   return pagos.entries();
  }
 
+// Esta función cambia el estado de la Tanda, si está inactiva, la activa y viceversa
 export function cambiarEstadoTanda(key: string): Tanda | null {
 
+  //El único dato que pedimos es la clave de la Tanda, si no lo recibimos, envíamos error
   assert(key != "", "El campo de clave no debe estar vacío.");
+
+  //Y consultamos nuestra tanda en el PersistentMap
   let tanda = tandas.get(key);
   
-  if(tanda){
+  //Si existe...
+  if(tanda){ 
+
+    //Validamos primero que quien está ejecutando sea el creador de la tanda
     assert(tanda.creador == context.sender, "No cuentas con autorización para modificar esta Tanda");
+
+    //Y después que la tanda no tenga 0 integrantes
     assert(tanda.integrantes.length > 0, "No se puede inicializar la Tanda sin integrantes.");
 
+    //Ahora, dependiendo del estado, si está activa
     if(tanda.activa){
+      //La desactivamos
       tanda.activa = false;
+      //Y generamos la fecha final, la cual sería este momento.
       const date = datetime.block_datetime();
       tanda.fechaFinal = date.toString();
+
+      //A partir de aquí, no deberías poder activar la tanda de nuevo.
     }
+    //Ahora, si la tanda no estaba activa
     else{
+      //Cambiamos el estado a verdadero
       tanda.activa = true;
 
+      //Y generamos los días a sumar, que es la multiplicación del número de integrantes por el periodo.
       let dias_a_sumar = tanda.numIntegrantes * tanda.periodo;
-      const date_added = datetime.block_datetime().add(new Duration(0,0,0,<i32>dias_a_sumar));
 
-      tanda.fechaInicio = datetime.block_datetime().toString();
-      tanda.fechaFinal = date_added.toString();
+      //Nos traemos la fecha desde la blockchain y le agregamos los días a sumar.
+      //datetime.block_datetime() regresa una fecha de tipo PlainDateTime
+      //Para mas información en la suma revisa:
+      //https://tc39.es/proposal-temporal/docs/plaindatetime.html
+      const date_added = datetime.block_datetime().add(new Duration(0,0,0,<i32>dias_a_sumar -1));
+
+      //En estas líneas, convertimos la fecha de la blockhain a cadena, luego le quitamos el tiempo.
+      //el toString regresa una fecha como la siguiente: 2021-10-14T04:16:46.716457589
+      //Sin embargo, solo nos interesa la fecha, por lo que hacemos un split en base a la T
+      //que es el componente del tiempo, y como split regresa un arreglo, pedimos el primer índice [0],
+      //que sería nuestra cadena que contiene sólo la fecha como: 2021-10-14
+      tanda.fechaInicio = datetime.block_datetime().toString().split('T')[0];
+      //Lo mismo con la fecha final, pero usando la variable en la que hicimos la suma de días.
+      tanda.fechaFinal = date_added.toString().split('T')[0];
+
     }
 
+    //Sea lo que sea que hayamos hecho, guardamos en el PersistentMap con set
     tandas.set(tanda.id, tanda);
+    //Y la regresamos para visualización en consola.
     return tandas.get(tanda.id);
   }
-
+  //Este return es por si la Tanda no existía al inicio.
   return null;
 }
 
@@ -350,3 +374,124 @@ export function regalarDinero(monto: i32, idCuenta: AccountId): bool {
 }
 
 
+export function generarPeriodos(key: string): Array<Periodos> | null {
+  //Primero, consultamos que la tanda exista, si no, mandamos un error
+  const tanda = tandas.get(key)
+  
+  //Si la Tanda existe...
+  if(tanda){
+
+    //Consultamos que los periodos no estén inicializados
+    const pers = tandaPeriodos.get(key)
+    
+    // Si no lo están...
+    if(!pers){
+      //Notificamos que se van a inicializar
+      logging.log(`Inicializando periodos para Tanda: ${tanda.nombre}...`)
+
+      //Creamos un nuevo arreglo de periodos
+      let periodosTanda = new Array<Periodos>();
+
+      //Inicializamos el primer valor, este siempre va a ser la fecha de inicio de la Tanda
+      let inicio = PlainDate.from(tanda.fechaInicio)
+
+      //Y ciclamos n veces, siendo n el numero de integrantes definido en la Tanda
+      for(let i = 0; i < <i32>tanda.numIntegrantes; i++){
+
+        //Creamos la fecha del final de ciclo, sumandole el periodo pero restando un dia
+        //Si sumaramos el periodo sin la resta, nos daria la fecha de inicio del siguiente ciclo.
+        let finalCiclo = inicio.add(new Duration(0,0,0,<i32>tanda.periodo - 1))
+
+        //Creamos nuestro objeto, mandando las cadenas de ambas fechas
+        let per = new Periodos(inicio.toString(),finalCiclo.toString())
+
+        //Lo metemos al arreglo
+        periodosTanda.push(per)
+
+        //Y definimos la fecha de inicio del siguiente ciclo
+        inicio = finalCiclo.add(new Duration(0,0,0,1))
+      }
+
+      //Una vez que terminamos, tenemos nuestro arreglo, el cual ya podemos meter al mapa
+      tandaPeriodos.set(key, periodosTanda)
+
+      //Notificamos el final del proceso
+      logging.log(`Se inicializaron los periodos para la Tanda: ${tanda.nombre}...`)
+
+      //Y lo regresamos
+      return periodosTanda
+    }
+    //Si ya estaban inicializados
+    else{
+      //Notificamos que ya existía este arreglo
+      logging.log(`Los periodos para ${tanda.nombre} ya se encontraban inicializados.`)
+      
+      //Y los regresamos
+      return pers
+    }
+  }
+  //Este return es por si la Tanda no existía al inicio.
+  return null
+}
+
+export function pruebaPeriodoActual(key: string): void{
+  const tanda = tandas.get(key)
+
+  if(tanda){
+    let inicio = PlainDate.from(tanda.fechaInicio)
+    let actual = PlainDate.from(datetime.block_datetime().toString())
+
+    logging.log(`Inicio: ${inicio.toString()}, Actual: ${actual.toString()}`)
+    let resta = inicio.until(actual).days;
+
+    let periodo = floor(resta/tanda.periodo) + 1
+    logging.log(`Diferencia: ${resta}`)
+    logging.log(`Periodo actual: ${periodo}`)
+    
+  }
+}
+
+export function tandaFicticia(): void {
+  let tanda = new Tanda(`Tanda ficticia X`, 15, 5, 7)
+  tanda.activa = true
+  tanda.fechaInicio = '2021-08-08'
+
+  tandas.set(tanda.id, tanda);
+  keys.push(tanda.id);
+  logging.log(tanda.id);
+}
+
+export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
+  //Validamos que la tanda exista
+  assert(tandas.get(key), `La Tanda ${key} no existe.`)
+
+  //Consultamos que los periodos estén inicializados
+  const pers = tandaPeriodos.get(key)
+
+  //Si están inicializados
+  if(pers){
+    //Validamos que el turno que mandamos sea correcto
+    assert(turno <= pers.length, `La tanda sólo contiene ${pers.length} espacios.`)
+
+    //Y validamos que el turno no esté tomado.
+    assert(pers[turno -1].usuarioTurno == '', `El turno ${turno} ya está tomado por ${pers[turno -1].usuarioTurno}`)
+
+    //Si nada de lo de arriba falló, nos registramos en el índice correspondiente
+    pers[turno -1].usuarioTurno = context.sender
+
+    //Guardamos cambios en la blockchain
+    tandaPeriodos.set(key, pers)
+
+    //Notificamos que se realizó el cambio
+    logging.log(`El usuario ${context.sender} ha tomado exitosamente el turno ${turno} en la Tanda.`)
+
+    //Y regresamos los turnos
+    return pers
+  }
+  else{
+    //Si no están inicializados, se pide que se haga.
+    logging.log(`Por favor, inicializa los periodos de la Tanda ${key}.`)
+  }
+  //Este return es por si la Tanda no existía al inicio.
+  return null
+}
