@@ -56,7 +56,7 @@ export const keys = new PersistentVector<string>("k");
 export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
 
 //Almacenamiento para los pagos
-export const pagos = new PersistentUnorderedMap<string, PersistentUnorderedMap<string,Array<Pago>>>("p");
+export const pagos = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("hp");
 
 export const pagos3 = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("Pa");
 

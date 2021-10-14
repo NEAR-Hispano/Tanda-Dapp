@@ -1,5 +1,5 @@
-import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap, u128, ContractPromiseBatch } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos, pagos3} from "../models/model";
+import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap, u128 } from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
 import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos} from './utils';
 
@@ -170,114 +170,109 @@ export function consultarIntegrantes(key: string): Array<string> | null {
   return null;
 }
 
-
-export function consultarPagos2(): MapEntry<string, Map<string, Array<Pago>>>[]  {
-  return pagos3.entries();
+function validarIntegrante (tandaKeys: Array<string> | null, accountId: string) : bool{
+    return tandaKeys ? tandaKeys.includes(accountId) : false;
 }
 
-export function agregarPagoTest(key: string): bool {
-
-  //Consultamos la tanda
+export function agregarIntegrantePago(key: string): bool {
+  // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
+  if (tanda){
+    // Almacenamos los valores generales para registrar el contrato
+    const cuentaId = context.sender;
 
-  //si existe
-  if(tanda){
-
+    // Validamos que el usuario exista en la tanda
+    const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
+    assert(valido, `El integrante ${cuentaId} no es integrante de la tanda`);
+  
     const monto = context.attachedDeposit;
-    //buscamos el historial de pagos
-    let historialPagoTanda = pagos3.get(key);
+    assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
-    //si no hay
-    if(!historialPagoTanda){
-      // manda error si no le metimos nada de dinero
-      assert(context.attachedDeposit > u128.Zero, "Donor must attach some money")
+    // Creamos el objeto del pago
+    const nuevoPago = new Pago(monto, context.blockTimestamp.toString());
 
-      //crea un nuevo arreglo de tipo Pago
-      let arregloPago = new Array<Pago>();
-      
-      //Y creamos un nuevo objeto de tipo pago con el deposito  y la fecha, y le hacemos push al arreglo
-      const pagoRecibido = new Pago(context.attachedDeposit, datetime.block_datetime().toString())
-      arregloPago.push(pagoRecibido)
+    // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
+    let historialPagoTanda = pagos.get(key);
+    
+    if (!historialPagoTanda) {
+      logging.log(`El historial de pagos esta vacio`);
 
       //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
       let paymentMap = new Map<string, Array<Pago>>();
 
       //le mandamos como clave el que envia (context.sender) y el arreglo de pagos de arriba
-      paymentMap.set(context.sender, arregloPago)
+      paymentMap.set(cuentaId, [nuevoPago]);
 
-      //y hacemos set en el persistent map, enviando la key de la tanda y el mapa de arriba
-      //esto ya hace que directo se guarde en la blockchain
-      pagos3.set(key, paymentMap)
-      logging.log('Pago realizado por ' + monto.toString())
-
-      return true
-    }
-    else{
-
-      //y pues si no existe, tendriamos que validar si el usuario existe, y si si, hacerle push al arreglo
-      //y si no pues crear un nuevo arregloPago y ese es el que mandamos y así
-      return false
-      
-    }
-
-  }
-  return false
-}
-
-export function agregarIntegrantePago(key: string, fechaPago: string): bool {
-  // Consultamos que el ID de la tanda enviado exista
-  const tanda = tandas.get(key);
-  if (tanda){
-    const monto = context.attachedDeposit;
-    const pago = new Pago(monto, fechaPago);
-    // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
-    let historialPagoTanda = pagos.get(key);
-    
-    if (!historialPagoTanda) {
-      logging.log(`Pagos esta vacio ${pagos.length}`);
       // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
-      historialPagoTanda = new PersistentUnorderedMap<string, Array<Pago>>('h');
-      historialPagoTanda.set(context.predecessor, new Array<Pago>());
-      logging.log(`SE CREO UN NUEVO HISTORIAL DE PAGOS`);
+      pagos.set(key, paymentMap);
+      logging.log(`Se instancio exitosamente el registro de pagos`);
+      return true;
     }
 
     // Verificamos si esa tanda contiene al menos el registro de un pago
     if (historialPagoTanda) {
-      logging.log(`historial pagos ${historialPagoTanda ? historialPagoTanda.length: -9999}`);
+
       // Obtenemos la lista de los pagos realizados de un integrante a una tanda
-      let historialPagos = historialPagoTanda.get(context.predecessor);
+      let historialPagos = historialPagoTanda.get(cuentaId);
       if (historialPagos){
-        // Añadimos un nuevo pago al registro de pagos del integrante
-        historialPagos.push(pago);
-        logging.log(`Se añadio un nuevo pago de ${context.predecessor.toString()} exitosamente`);
+        // Si existen registros de pago, añadimos un nuevo pago al registro de pagos del integrante
+        historialPagos.push(nuevoPago);
+        logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente`);
+        // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
+        pagos.set(key, historialPagoTanda);
         return true;
       }else {
         // En caso de que aun no existan registros de pago del integrante
-        historialPagoTanda.set(context.predecessor, [pago]);
-        logging.log(`El primer pago de ${context.predecessor.toString()} ha sido registrado exitosamente`);
+        historialPagoTanda.set(cuentaId, [nuevoPago]);
+        logging.log(`El primer pago de ${cuentaId.toString()} ha sido registrado exitosamente`);
+        // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
+        pagos.set(key, historialPagoTanda);
         return true;
       } 
     }
-    logging.log(`historial pagos esta vacio`);
   }
   logging.log(`La Tanda ${key} no existe`);
   return false;
 }
 
-export function consultarIntegrantePago(key: string, accountId: string): Array<Pago> | null {
+export function consultarTandaPagos(key: string): Map<string, Array<Pago>> | null  {
+  // Consultamos la existencia de la tanda 
   const tanda = tandas.get(key);
   if (tanda){
-    const historialPagosTanda = pagos.get(key);
-    if (historialPagosTanda) {
-      const historialPagos = historialPagosTanda.get(accountId);
-      return historialPagos;
-    }
-    logging.log(`El integrante ${accountId} no ha realizado pagos en la Tanda ${key}`);
-    return null;
+    // Si la tanda existe entonces regresamos todos los pagos de esa tanda
+    return pagos.get(key);
   }
   logging.log(`La Tanda ${key} no existe`);
   return null;
 }
+
+export function consultarIntegrantePagos(key: string, accountId: string): Array<Pago>  {
+  
+   // Validamos que el usuario exista en la tanda
+   const valido =  validarIntegrante(consultarIntegrantes(key), accountId);
+  
+   assert(valido, `El integrante ${accountId} no es integrante de la tanda`);
+
+  const tanda = tandas.get(key);
+  // Consultamos la existencia de la tanda
+  if (!tanda){ 
+    logging.log(`La Tanda ${key} no existe`);
+    return [];
+  }
+
+  // Obtenemos el historial de pagos de una tanda
+  const historialPagosTanda = pagos.get(key);
+  if (historialPagosTanda) {
+     // Si existen pagos de esa tanda, entonces regresamos los pagos realizados por un integrante
+    return historialPagosTanda.get(accountId);
+  }
+  return [];
+}
+
+export function consultarPagos(): MapEntry<string, Map<string, Array<Pago>>>[]  {
+  // Traer todos los pagos registrados en la red de NEAR
+  return pagos.entries();
+ }
 
 export function cambiarEstadoTanda(key: string): Tanda | null {
 
