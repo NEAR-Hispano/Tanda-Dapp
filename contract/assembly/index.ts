@@ -1,8 +1,19 @@
 import { logging, context, datetime, MapEntry, u128, ContractPromiseBatch } from 'near-sdk-as'
 import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos, tandaPeriodos, Periodos} from "../models/model";
 import { Duration , PlainDate } from 'assemblyscript-temporal';
-import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos} from './utils';
+import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos, getFechaActual} from './utils';
 
+/**
+ * Método del smart contract para registrar una nueva tanda.
+ * El comando para utilizarlo en la terminal es:
+ *  >> near call $ACCOUNT_ID crearTanda '{"nombreTanda": "nombre", "integrantes": "numero de integrantes", "monto": "monto de la aportación", "periodo": 7 | 15 | 30}' --accountId $ACCOUNT_ID
+ *    * $ACCOUNT_ID es una variable que contiene el id de la cuenta del contrato
+ * 
+ * @param nombreTanda string que contiene el nombre de la tanda a registrar
+ * @param integrantes string con valor numérico que contiene la cantidad de integrantes para los que estará abierta la tanda
+ * @param monto string valor numérico del monto de las aportaciones periódicas en la tanda
+ * @param periodo enum numérico donde 7=Semanal, 15=Quincenal y 30=Mensual
+ */
 export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, periodo: i32): void{
   
   //Validamos que los parámetros enviados sean correctos
@@ -45,10 +56,19 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   tandas.set(tanda.id, tanda);
   //Y la clave al arreglo de tandas.
   keys.push(tanda.id);
-
+  
+  //Llamamos a la función encargada de registrar añadir el registro del nuevo usuario en la colección de usuarios 
   registrarUsuario(context.sender, tanda.id, true);
 }
 
+/**
+ * Método encargado de añadir un registro nuevo a la colección de usuarios
+ * El comando para utilizarlo en la terminal es:
+ *  >> near call $ACCOUNT_ID registrarUsuario '{"idCuenta": "cuentaId", "idTanda": "key de la tanda", "creada": false | true}' --accountId $ACCOUNT_ID
+ * @param idCuenta string que contiene el valor de la cuenta id del usuario a registrar
+ * @param idTanda string con el valor de la key de la tanda
+ * @param creada bool indica si el usuario es el creador de la tanda=true, en caso contrario es false
+ */
 export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool): void{
 
   const usuario = usuarios.get(idCuenta);
@@ -63,16 +83,36 @@ export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool
   }
 }
 
+/**
+ * Método que retorna el registro de todos los usuarios que participan en las tandas creadas por un admin 
+ * El comando para utilizarlo en la terminal es:
+ *  >> near view $ACCOUNT_ID consultarUsuarios '{}'
+ * @returns MapEntry<string, Usuario>[]
+ */
 export function consultarUsuarios(): MapEntry<string, Usuario>[] {
   return usuarios.entries();
 }
 
+/**
+ * Método que retorna el registro de las tandas creadas de un admin
+ * El comando para utilizarlo en la terminal es:
+ *  >> near view $ACCOUNT_ID consultarUsuarios '{}'
+ * @param idCuenta string de la cuenta id del un usuario creador de tandas
+ * @returns Array<Tanda | null> | null
+ */
 export function consultarTandasCreadas(idCuenta: string = context.sender): Array<Tanda | null> | null{
   const usuario = usuarios.get(idCuenta);
   
   return usuario ? buscarTandas(usuario.tandasCreadas) : null
 }
 
+/**
+ * Método que retorna todas las tandas a las que integrante esta inscrito
+ * El comando para utilizarlo en la terminal es:
+ *  >> near view $ACCOUNT_ID consultarTandasInscritas '{}'
+ * @param idCuenta string de la cuenta id del integrante
+ * @returns Array<Tanda | null> | null
+ */
 export function consultarTandasInscritas(idCuenta: string = context.sender): Array<Tanda | null> | null {
   const usuario = usuarios.get(idCuenta);
 
@@ -161,71 +201,76 @@ export function consultarIntegrantes(key: string): Array<string> | null {
   return null;
 }
 
+/**
+ * Función interna encargada de validar si una cuenta id de un integrante, se encuentra registrado en la lista de los integrantes de la tanda
+ * @param tandaKeys Array<string> Arreglo de los ids de las cuentas de integrantes registrados en una tanda
+ * @param accountId string Id de la cuenta que va a ser verificada
+ * @returns bool True si el integrante existe en los integrantes de la tanda
+ */
 function validarIntegrante (tandaKeys: Array<string> | null, accountId: string) : bool{
     return tandaKeys ? tandaKeys.includes(accountId) : false;
 }
 
+/**
+ * Método para añadir el pago de un integrante a una tanda
+ * @param key string que contiene la key de una tanda
+ * @returns bool True si el pago fue añadido exitosamente, False en caso contrario
+ */
 export function agregarIntegrantePago(key: string): bool {
   // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
-  if (tanda){
-    // Almacenamos los valores generales para registrar el contrato
-    const cuentaId = context.sender;
+  assert(tanda, `La Tanda ${key} no existe`);
+ 
+  // Almacenamos los valores generales para registrar el contrato
+  const cuentaId = context.sender;
 
-    // Validamos que el usuario exista en la tanda
-    const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
-    assert(valido, `El usuario ${cuentaId} no es integrante de la tanda`);
+  // Validamos que el usuario exista en la tanda
+  const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
+  assert(valido, `El usuario ${cuentaId} no es integrante de la tanda`);
+
+  const monto = context.attachedDeposit;
+  assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
+
+  // Creamos el objeto del pago
+  const nuevoPago = new Pago(monto, getFechaActual());
+
+  // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
+  let historialPagoTanda = pagos.get(key);
   
-    const monto = context.attachedDeposit;
-    assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
+  if (!historialPagoTanda) {
+    logging.log(`El historial de pagos esta vacio`);
 
-    const date = datetime.block_datetime();
+    //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
+    let paymentMap = new Map<string, Array<Pago>>();
 
-    // Creamos el objeto del pago
-    const nuevoPago = new Pago(monto, datetime.block_datetime().toString().split('T')[0]);
+    //le mandamos como clave el que envia (context.sender) y el arreglo de pagos de arriba
+    paymentMap.set(cuentaId, [nuevoPago]);
 
-    // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
-    let historialPagoTanda = pagos.get(key);
-    
-    if (!historialPagoTanda) {
-      logging.log(`El historial de pagos esta vacio`);
-
-      //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
-      let paymentMap = new Map<string, Array<Pago>>();
-
-      //le mandamos como clave el que envia (context.sender) y el arreglo de pagos de arriba
-      paymentMap.set(cuentaId, [nuevoPago]);
-
-      // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
-      pagos.set(key, paymentMap);
-      logging.log(`Se instancio exitosamente el registro de pagos`);
-      return true;
-    }
-
-    // Verificamos si esa tanda contiene al menos el registro de un pago
-    if (historialPagoTanda) {
-
-      if (historialPagoTanda.has(cuentaId)){
-        // Obtenemos la lista de los pagos realizados de un integrante a una tanda
-        let historialPagos = historialPagoTanda.get(cuentaId);
-        // Si existen registros de pago, añadimos un nuevo pago al registro de pagos del integrante
-        historialPagos.push(nuevoPago);
-        logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente`);
-        // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
-        pagos.set(key, historialPagoTanda);
-        return true;
-      }else {
-        // En caso de que aun no existan registros de pago del integrante
-        historialPagoTanda.set(cuentaId, [nuevoPago]);
-        logging.log(`El primer pago de ${cuentaId.toString()} ha sido registrado exitosamente`);
-        // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
-        pagos.set(key, historialPagoTanda);
-        return true;
-      } 
-    }
+    // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
+    pagos.set(key, paymentMap);
+    logging.log(`Se instancio exitosamente el registro de pagos`);
+    return true;
   }
-  logging.log(`La Tanda ${key} no existe`);
-  return false;
+
+  // Verificamos si esa tanda contiene al menos el registro de un pago
+  if (historialPagoTanda.has(cuentaId)){
+    // Obtenemos la lista de los pagos realizados de un integrante a una tanda
+    let historialPagos = historialPagoTanda.get(cuentaId);
+    // Si existen registros de pago, añadimos un nuevo pago al registro de pagos del integrante
+    historialPagos.push(nuevoPago);
+    logging.log(`Se añadio un nuevo pago de ${cuentaId.toString()} exitosamente`);
+    // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
+    pagos.set(key, historialPagoTanda);
+    return true;
+  }else {
+    // En caso de que aun no existan registros de pago del integrante
+    historialPagoTanda.set(cuentaId, [nuevoPago]);
+    logging.log(`El primer pago de ${cuentaId.toString()} ha sido registrado exitosamente`);
+    // Enviamos los cambios realizados sobre la colección de PersistentUnorderedMap
+    pagos.set(key, historialPagoTanda);
+    return true;
+  } 
+  
 }
 
 export function consultarTandaPagos(key: string): Map<string, Array<Pago>> | null  {
@@ -243,7 +288,6 @@ export function consultarIntegrantePagos(key: string, accountId: string): Array<
   
    // Validamos que el usuario exista en la tanda
    const valido =  validarIntegrante(consultarIntegrantes(key), accountId);
-  
    assert(valido, `El integrante ${accountId} no es integrante de la tanda`);
 
   const tanda = tandas.get(key);
@@ -451,6 +495,7 @@ export function pruebaPeriodoActual(key: string): void{
   }
 }
 
+// TODO: Función temporal para crear una tanda, eliminar antes de mandar a la mainnet 
 export function tandaFicticia(): void {
   let tanda = new Tanda(`Tanda ficticia X`, 15, 5, 7)
   tanda.activa = true
@@ -464,6 +509,10 @@ export function tandaFicticia(): void {
 export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
   //Validamos que la tanda exista
   assert(tandas.get(key), `La Tanda ${key} no existe.`)
+
+  // Validamos que el usuario exista en la tanda
+  const valido =  validarIntegrante(consultarIntegrantes(key), context.sender);
+  assert(valido, `El usuario ${context.sender} no es integrante de la tanda`);
 
   //Consultamos que los periodos estén inicializados
   const pers = tandaPeriodos.get(key)
