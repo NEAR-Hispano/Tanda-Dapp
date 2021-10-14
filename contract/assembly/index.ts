@@ -1,4 +1,4 @@
-import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap, u128 } from 'near-sdk-as'
+import { logging, context, datetime, MapEntry, u128, ContractPromiseBatch } from 'near-sdk-as'
 import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
 import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos} from './utils';
@@ -189,7 +189,7 @@ export function agregarIntegrantePago(key: string): bool {
     assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
     // Creamos el objeto del pago
-    const nuevoPago = new Pago(monto, context.blockTimestamp.toString());
+    const nuevoPago = new Pago(monto, datetime.block_datetime().toString().split('T')[0]);
 
     // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
     let historialPagoTanda = pagos.get(key);

@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { List, Typography, Divider, Layout, Button } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { List, Typography, Divider, Layout, Button, Tree } from 'antd';
+import { UserOutlined, FileDoneOutlined, CalendarOutlined} from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-
+import { ONE_NEAR } from '../utils/enums';
+import moment from 'moment';
 
 function AdministrarTanda({ match }) {
 
   const [tandaInfo, setTandaInfo] = useState();
   const [nombreTanda, setNombretanda] = useState('')
   const [integrantesTanda, setIntegrantesTanda] = useState([]);
+  const [pagos, setPagos] = useState([]);
 
   useEffect(
     () => {
@@ -22,6 +24,10 @@ function AdministrarTanda({ match }) {
           window.contract.consultarIntegrantes({key: match.params.id})
           .then(info => {
             setIntegrantesTanda(info)
+          })
+
+          window.contract.consultarPagos().then(data => {
+            setPagos(data)
           })
         }
     },
@@ -42,22 +48,70 @@ function AdministrarTanda({ match }) {
     [integrantesTanda]
   )
 
+  useEffect(
+    () => {
+        console.log(pagos)        
+    },
+    [pagos]
+  )
+
+  const dataPagos = pagos.map(item => {
+    const integrantesId = Object.keys(item.value); 
+    return integrantesId.map((id) => {
+      const children = item.value[id].map((child, index) => {
+        return {
+          title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
+          key: `child_${id}${index}`,
+          icon: <FileDoneOutlined />
+        }
+      });
+
+      return {
+        icon: <UserOutlined />,
+        title: id,
+        key: id,
+        children
+      };
+    });
+    
+  });
+
   return (
     <>
     <Layout className="layout" style={{background:'#bfc9d8'}}>
       <Divider orientation="center"><h1 className='tc'>{nombreTanda}</h1></Divider>
       <div style={{ display: 'flex', justifyContent:'center'}}>
         <List 
-          style={{background:'white', width: '90%'}}
-          header={<div><strong>Integrantes</strong></div>}
+          style={{background:'white', width: '40%'}}
+          header={<div>
+            <div style={{textAlign: 'center'}}><strong >Integrantes </strong></div>
+            <div style={{textAlign: 'right'}}><strong >Total: {integrantesTanda.length}</strong></div>
+          </div>}
+          bordered
+          dataSource={[0]}
+          renderItem={item => (
+            <List.Item>
+              <Tree
+                showIcon
+                treeData={dataPagos[0]}
+                defaultExpandAll 
+              />,
+            </List.Item>
+          )}
+        />  
+
+        <List 
+          style={{background:'white', width: '40%', marginLeft: '10em'}}
+          header={<div><strong>Fechas de pago</strong></div>}
           bordered
           dataSource={integrantesTanda}
           renderItem={item => (
             <List.Item>
-              <UserOutlined /> {item}
+              <CalendarOutlined /> {item}
             </List.Item>
           )}
         />  
+        
       </div>
       <br/>
       <Divider orientation="center"><h2>Editar / Activar</h2></Divider>
