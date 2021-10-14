@@ -58,7 +58,8 @@ export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
 //Almacenamiento para los pagos
 export const pagos = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("hp");
 
-export const pagos3 = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("Pa");
+//Almacenamiento datos de periodo
+export const tandaPeriodos = new PersistentUnorderedMap<string, Array<Periodos>>("S")
 
 @nearBindgen
 export class Usuario {
@@ -92,5 +93,24 @@ export class Pago {
     constructor(monto: Money, fechaPago: string){
         this.monto = monto;
         this.fechaPago = fechaPago;
+    }
+}
+
+@nearBindgen
+export class Periodos {
+    public inicio: string;
+    public final: string;
+    public usuarioTurno: AccountId;
+    public pagosCompletos: bool;
+    public tandaPagada: bool;
+    public cantidadRecaudada: u64;
+
+    constructor(inicio: string, final: string){
+        this.inicio = inicio;
+        this.final = final;
+        this.usuarioTurno = '';
+        this.pagosCompletos = false;
+        this.tandaPagada = false;
+        this.cantidadRecaudada = 0;
     }
 }
