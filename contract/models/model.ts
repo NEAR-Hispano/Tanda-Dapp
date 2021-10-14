@@ -21,7 +21,7 @@ export class Tanda {
         this.monto = monto;
         this.activa = false;
         this.periodo = periodo;
-        this.integrantes = new PersistentVector<Integrante>(`${context.blockIndex + 1}`);
+        this.integrantes = new PersistentVector<Integrante>(`${context.blockIndex}`);
         this.creador = context.sender;
     }
 
@@ -57,6 +57,8 @@ export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
 
 //Almacenamiento para los pagos
 export const pagos = new PersistentUnorderedMap<string, PersistentUnorderedMap<string,Array<Pago>>>("p");
+
+export const pagos3 = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("Pa");
 
 @nearBindgen
 export class Usuario {

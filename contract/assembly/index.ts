@@ -1,10 +1,10 @@
-import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap } from 'near-sdk-as'
-import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos} from "../models/model";
+import { logging, context, datetime, MapEntry, PersistentMap, PersistentUnorderedMap, u128, ContractPromiseBatch } from 'near-sdk-as'
+import { tandas, keys, Tanda, Integrante, Pago, Usuario, usuarios, pagos, pagos3} from "../models/model";
 import { Duration } from 'assemblyscript-temporal';
-import { AccountId, MAX_PAGE_SIZE, periodos} from './utils';
+import { AccountId, asNEAR, MAX_PAGE_SIZE, ONE_NEAR, periodos} from './utils';
 
 export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, periodo: i32): void{
-
+  
   //Validamos que los parámetros enviados sean correctos
 
   /* Tecnicamente podría ir vacío, no hay ningún método que requiera el nombre.
@@ -170,6 +170,60 @@ export function consultarIntegrantes(key: string): Array<string> | null {
   return null;
 }
 
+
+export function consultarPagos2(): MapEntry<string, Map<string, Array<Pago>>>[]  {
+  return pagos3.entries();
+}
+
+export function agregarPagoTest(key: string): bool {
+
+  //Consultamos la tanda
+  const tanda = tandas.get(key);
+
+  //si existe
+  if(tanda){
+
+    const monto = context.attachedDeposit;
+    //buscamos el historial de pagos
+    let historialPagoTanda = pagos3.get(key);
+
+    //si no hay
+    if(!historialPagoTanda){
+      // manda error si no le metimos nada de dinero
+      assert(context.attachedDeposit > u128.Zero, "Donor must attach some money")
+
+      //crea un nuevo arreglo de tipo Pago
+      let arregloPago = new Array<Pago>();
+      
+      //Y creamos un nuevo objeto de tipo pago con el deposito  y la fecha, y le hacemos push al arreglo
+      const pagoRecibido = new Pago(context.attachedDeposit, datetime.block_datetime().toString())
+      arregloPago.push(pagoRecibido)
+
+      //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
+      let paymentMap = new Map<string, Array<Pago>>();
+
+      //le mandamos como clave el que envia (context.sender) y el arreglo de pagos de arriba
+      paymentMap.set(context.sender, arregloPago)
+
+      //y hacemos set en el persistent map, enviando la key de la tanda y el mapa de arriba
+      //esto ya hace que directo se guarde en la blockchain
+      pagos3.set(key, paymentMap)
+      logging.log('Pago realizado por ' + monto.toString())
+
+      return true
+    }
+    else{
+
+      //y pues si no existe, tendriamos que validar si el usuario existe, y si si, hacerle push al arreglo
+      //y si no pues crear un nuevo arregloPago y ese es el que mandamos y así
+      return false
+      
+    }
+
+  }
+  return false
+}
+
 export function agregarIntegrantePago(key: string, fechaPago: string): bool {
   // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
@@ -178,6 +232,7 @@ export function agregarIntegrantePago(key: string, fechaPago: string): bool {
     const pago = new Pago(monto, fechaPago);
     // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
     let historialPagoTanda = pagos.get(key);
+    
     if (!historialPagoTanda) {
       logging.log(`Pagos esta vacio ${pagos.length}`);
       // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
@@ -286,3 +341,17 @@ export function editarTanda(
   }
   return null;
 }
+
+
+
+export function regalarDinero(monto: i32, idCuenta: AccountId): bool {
+
+  const montoTransferencia = u128.mul(ONE_NEAR, u128.from(monto))
+  ContractPromiseBatch.create(idCuenta).transfer(montoTransferencia)
+
+  logging.log(`Se transfirieron ${asNEAR(montoTransferencia)} NEAR a ${idCuenta}`)
+  
+  return true
+}
+
+

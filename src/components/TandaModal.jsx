@@ -21,10 +21,11 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
 
     const handleModal = () => {
         let integrantes = [];
-        window.contract.consultarIntegrantes({key:'63472608'}).then(response => {
+        window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
             integrantes = response;
         });
 
+        console.log(origen)
         const config = {
             title: `${tanda.nombre}`,
             content: (
