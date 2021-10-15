@@ -3,7 +3,6 @@ import { List, Typography, Divider, Layout, Button, Tree } from 'antd';
 import { UserOutlined, FileDoneOutlined, CalendarOutlined} from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import { ONE_NEAR } from '../utils/enums';
-import moment from 'moment';
 
 function AdministrarTanda({ match }) {
 
@@ -11,6 +10,7 @@ function AdministrarTanda({ match }) {
   const [nombreTanda, setNombretanda] = useState('')
   const [integrantesTanda, setIntegrantesTanda] = useState([]);
   const [pagos, setPagos] = useState([]);
+  const [periodos, setPeriodos] = useState([]);
 
   useEffect(
     () => {
@@ -28,6 +28,10 @@ function AdministrarTanda({ match }) {
 
           window.contract.consultarPagos().then(data => {
             setPagos(data)
+          })
+
+          window.contract.generarPeriodos().then(data => {
+            setPeriodos(data)
           })
         }
     },
@@ -53,6 +57,13 @@ function AdministrarTanda({ match }) {
         console.log(pagos)        
     },
     [pagos]
+  )
+
+  useEffect(
+    () => {
+        console.log(periodos)        
+    },
+    [periodos]
   )
 
   const dataPagos = pagos.map(item => {
@@ -82,7 +93,7 @@ function AdministrarTanda({ match }) {
       <Divider orientation="center"><h1 className='tc'>{nombreTanda}</h1></Divider>
       <div style={{ display: 'flex', justifyContent:'center'}}>
         <List 
-          style={{background:'white', width: '40%'}}
+          style={{background:'white', width: '25%'}}
           header={<div>
             <div style={{textAlign: 'center'}}><strong >Integrantes </strong></div>
             <div style={{textAlign: 'right'}}><strong >Total: {integrantesTanda.length}</strong></div>
@@ -101,7 +112,7 @@ function AdministrarTanda({ match }) {
         />  
 
         <List 
-          style={{background:'white', width: '40%', marginLeft: '10em'}}
+          style={{background:'white', width: '20%', marginLeft: '10em'}}
           header={<div><strong>Fechas de pago</strong></div>}
           bordered
           dataSource={integrantesTanda}

@@ -71,16 +71,12 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
  */
 export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool): void{
 
-  const usuario = usuarios.get(idCuenta);
-  if(usuario){
-    creada ? usuario.tandasCreadas.push(idTanda) : usuario.tandasInscritas.push(idTanda);
-    usuarios.set(idCuenta, usuario);
+  let usuario = usuarios.get(idCuenta);
+  if (!usuario){
+    usuario = new Usuario(idCuenta);
   }
-  else{
-    let nuevoUsuario = new Usuario(idCuenta);
-    creada ? nuevoUsuario.tandasCreadas.push(idTanda) : nuevoUsuario.tandasInscritas.push(idTanda);
-    usuarios.set(idCuenta, nuevoUsuario);
-  }
+  creada ? usuario.tandasCreadas.push(idTanda) : usuario.tandasInscritas.push(idTanda);
+  usuarios.set(idCuenta, usuario);
 }
 
 /**
@@ -436,18 +432,20 @@ export function generarPeriodos(key: string): Array<Periodos> | null {
       //Creamos un nuevo arreglo de periodos
       let periodosTanda = new Array<Periodos>();
 
+      assert(tanda.fechaInicio, `La tanda ${tanda.nombre} no tiene definida la fecha de inicio`);
+      assert(tanda.fechaFinal, `La tanda ${tanda.nombre} no tiene definida la fecha de fin`);
       //Inicializamos el primer valor, este siempre va a ser la fecha de inicio de la Tanda
-      let inicio = PlainDate.from(tanda.fechaInicio)
+      let inicio = PlainDate.from(tanda.fechaInicio);
 
       //Y ciclamos n veces, siendo n el numero de integrantes definido en la Tanda
       for(let i = 0; i < <i32>tanda.numIntegrantes; i++){
 
         //Creamos la fecha del final de ciclo, sumandole el periodo pero restando un dia
         //Si sumaramos el periodo sin la resta, nos daria la fecha de inicio del siguiente ciclo.
-        let finalCiclo = inicio.add(new Duration(0,0,0,<i32>tanda.periodo - 1))
+        const finalCiclo = inicio.add(new Duration(0,0,0,<i32>tanda.periodo - 1))
 
         //Creamos nuestro objeto, mandando las cadenas de ambas fechas
-        let per = new Periodos(inicio.toString(),finalCiclo.toString())
+        const per = new Periodos(inicio.toString(),finalCiclo.toString())
 
         //Lo metemos al arreglo
         periodosTanda.push(per)
