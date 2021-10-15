@@ -69,7 +69,7 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
  * @param idTanda string con el valor de la key de la tanda
  * @param creada bool indica si el usuario es el creador de la tanda=true, en caso contrario es false
  */
-export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool): void{
+ export function registrarUsuario(idCuenta: string, idTanda: string, creada: bool): void{
 
   let usuario = usuarios.get(idCuenta);
   if (!usuario){
@@ -216,7 +216,13 @@ export function agregarIntegrantePago(key: string): bool {
   // Consultamos que el ID de la tanda enviado exista
   const tanda = tandas.get(key);
   assert(tanda, `La Tanda ${key} no existe`);
- 
+
+  //Si el pago no es por la cantidad establecida en la Tanda, lo rechazamos
+  if(tanda){
+    assert(context.attachedDeposit == u128.mul(ONE_NEAR, u128.from(tanda.monto)),
+    `Sólo se pueden realizar pagos por la cantidad establecida en la Tanda (${tanda.monto} NEAR).`)
+  }
+  
   // Almacenamos los valores generales para registrar el contrato
   const cuentaId = context.sender;
 
@@ -229,6 +235,50 @@ export function agregarIntegrantePago(key: string): bool {
 
   // Creamos el objeto del pago
   const nuevoPago = new Pago(monto, getFechaActual());
+
+  //*****************************/
+  //SE AGREGÓ PARA EL REGISTRO EN LOS PERIODOS
+  const pers = tandaPeriodos.get(key)
+  assert(pers, `Los periodos para la tanda ${key} no están inicializados.`)
+
+  //Si llega aquí es porque los periodos si están creados.
+  if(pers){
+
+    //Vamos a consultar a que periodo corresponde este pago
+    const indice = validarPeriodo(key, context.sender)
+
+    let msg = "";
+
+    switch(indice){
+      case -1: {
+        msg = "Ya se realizaron todos los pagos correspondientes."
+        break
+      }
+      case -2: {
+        msg = "Los periodos de la Tanda no están inicializados."
+        break
+      }
+      default: {
+        break
+      }
+    }
+    //Mandamos el error correspondiente en caso de que sea necesario
+    assert(indice >= 0, `El usuario ${context.sender} no puede realizar pagos. ${msg}`)
+
+    //Y con ese indice, agregamos la informacion que necesitamos
+    //Es decir, ingresamos al integrante en la lista de integrantes que ya pagaron
+    pers[indice].integrantesPagados.push(context.sender)
+    //Y sumamos la cantidad que se pagó a la cantidad total de ese periodo
+    pers[indice].cantidadRecaudada += <u64>parseInt(asNEAR(monto),10);
+
+    //Y guardamos en la blockchain
+    tandaPeriodos.set(key, pers)
+
+    //Por último, llamamos al método que valida si ya se puede pagar esa Tanda.
+    //En dado caso de que sí, cambiará el estado a verdadero.
+    validarPagoTanda(key, indice)
+  }
+  //*****************************/
 
   // Consultamos el historial de pagos por el ID de la tanda para obtener el historial de los integrantes y sus pagos
   let historialPagoTanda = pagos.get(key);
@@ -401,19 +451,6 @@ export function editarTanda(
   return null;
 }
 
-
-
-export function regalarDinero(monto: i32, idCuenta: AccountId): bool {
-
-  const montoTransferencia = u128.mul(ONE_NEAR, u128.from(monto))
-  ContractPromiseBatch.create(idCuenta).transfer(montoTransferencia)
-
-  logging.log(`Se transfirieron ${asNEAR(montoTransferencia)} NEAR a ${idCuenta}`)
-  
-  return true
-}
-
-
 export function generarPeriodos(key: string): Array<Periodos> | null {
   //Primero, consultamos que la tanda exista, si no, mandamos un error
   const tanda = tandas.get(key)
@@ -476,32 +513,9 @@ export function generarPeriodos(key: string): Array<Periodos> | null {
   return null
 }
 
-export function pruebaPeriodoActual(key: string): void{
-  const tanda = tandas.get(key)
-
-  if(tanda){
-    let inicio = PlainDate.from(tanda.fechaInicio)
-    let actual = PlainDate.from(datetime.block_datetime().toString())
-
-    logging.log(`Inicio: ${inicio.toString()}, Actual: ${actual.toString()}`)
-    let resta = inicio.until(actual).days;
-
-    let periodo = floor(resta/tanda.periodo) + 1
-    logging.log(`Diferencia: ${resta}`)
-    logging.log(`Periodo actual: ${periodo}`)
-    
-  }
-}
-
-// TODO: Función temporal para crear una tanda, eliminar antes de mandar a la mainnet 
-export function tandaFicticia(): void {
-  let tanda = new Tanda(`Tanda ficticia X`, 15, 5, 7)
-  tanda.activa = true
-  tanda.fechaInicio = '2021-08-08'
-
-  tandas.set(tanda.id, tanda);
-  keys.push(tanda.id);
-  logging.log(tanda.id);
+export function consultarPeriodos(key: string): Array<Periodos> | null {
+  const pers = tandaPeriodos.get(key)
+  return pers ? pers : null
 }
 
 export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
@@ -518,7 +532,9 @@ export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
   //Si están inicializados
   if(pers){
     //Validamos que el turno que mandamos sea correcto
-    assert(turno <= pers.length, `La tanda sólo contiene ${pers.length} espacios.`)
+    //Es decir, necesitamos que el turno sea menor o igual a la cantidad de periodos de la Tanda
+    //Y que sea mayor a cero
+    assert(turno <= pers.length && turno > 0, `La tanda sólo contiene ${pers.length} espacios.`)
 
     //Y validamos que el turno no esté tomado.
     assert(pers[turno -1].usuarioTurno == '', `El turno ${turno} ya está tomado por ${pers[turno -1].usuarioTurno}`)
@@ -541,4 +557,122 @@ export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
   }
   //Este return es por si la Tanda no existía al inicio.
   return null
+}
+
+//Esta funcion lo que regresa es el índice en el arreglo del primer periodo que encuentre
+//que el usuario no ha pagado, para así, asignar el pago a ese periodo.
+export function validarPeriodo(key: string, idCuenta: string = context.sender): i32 {
+
+  //Consultamos que los periodos estén inicializados
+  const pers = tandaPeriodos.get(key)//Vamos a validar que el usuario no haya pagado ya para ese periodo
+
+  //Si no lo están, mandamos error.
+  assert(pers, `Los periodos para la tanda ${key} no están inicializados.`)
+  //Si lo están...
+  if(pers){
+    //Ciclamos en los periodos
+    for(let i = 0; i < pers.length; i++){
+      //Si no encuentra al integrante en la lista de integrantes que han pagado este periodo
+      if(!validarIntegrante(pers[i].integrantesPagados, idCuenta)){
+        //Regresamos el índice
+        return i;
+
+        //Y si no, seguimos en el ciclo hasta encontrar que periodo no ha pagado
+      }
+    }
+
+    /* Ahora, este ciclo se realiza sólo si existen los periodos, es decir, si están inicializados.
+     * Por lo que, si llegamos aquí, significa que iteró por todos los periodos y no encontró
+     * una lista donde el integrante no estuviera. Por lo que podemos decir, que el integrante
+     * ha realizado todos sus pagos.
+     * 
+     * Entonces, mostramos el siguiente mensaje, notificando que ya no es necesario hacer pagos
+     */
+    logging.log(`El integrante ya ha realizado todos los pagos para esta Tanda.`)
+    //Y regresamos null, significando que ya no hay pagos por realizar.
+    return -1
+  }
+  //Aquí nunca va a llegar...
+  return -2
+}
+
+export function validarPagoTanda(key: string, indice: i32): bool {
+  const tanda = tandas.get(key)
+  assert(tanda, `La Tanda ${key} no existe.`)
+
+  const pers = tandaPeriodos.get(key)
+  assert(pers, `Los periodos de la Tanda ${key} no están inicializados.`)
+
+  //Si ambos existen...
+  if(tanda && pers){
+    logging.log(`Validando si la tanda puede ser pagada...`)
+    //Si en este periodo, la cantidad recaudada es igual a lo que se requiere
+    //(en este caso el monto de la tanda multiplicado por los integrantes)
+    //Y si ya todos los integrantes pagaron (si el registro de integrantes pagados
+    //es igual a la cantidad de integrantes que debe tener la tanda)
+    //Entonces decimos que los pagos ya se pueden realizar.
+    if(pers[indice].cantidadRecaudada == tanda.monto * tanda.numIntegrantes && 
+      pers[indice].integrantesPagados.length == tanda.numIntegrantes){
+      pers[indice].pagosCompletos = true
+
+      //Y guardamos en la blockchain
+      tandaPeriodos.set(key, pers)
+      return true
+    }
+    else{
+      return false
+    }
+  }
+  return false
+}
+
+//Funcion para pagar tanda.
+export function pagarTanda(key: string, indice: i32): bool {
+  //Se requiere el indice porque la estructura donde guardamos los periodos es un arreglo.
+  //Por lo tanto, podria decirse que el periodo es igual al indice + 1.
+
+  //Validando que la tanda exista y que los periodos estén inicializados...
+  const tanda = tandas.get(key)
+  assert(tanda, `La Tanda ${key} no existe.`)
+
+  const pers = tandaPeriodos.get(key)
+  assert(pers, `Los periodos de la Tanda ${key} no están inicializados.`)
+
+  //Si ambos lo están...
+  if(tanda && pers){
+    //Si no se puede pagar mandamos el error...
+    assert(pers[indice].pagosCompletos == true, `Este periodo aún no puede ser pagado.`)
+
+    //Validamos que la flag de los pagos completos sea verdadera.
+    if(pers[indice].pagosCompletos == true){
+
+      //Notificamos sobre el proceso...
+      logging.log(`Validando que este periodo pueda ser pagado...`)
+
+      //Si no hay usuario en turno (por alguna razon) no podemos hacer una transferencia.
+      assert(pers[indice].usuarioTurno != '', `No hay usuario en turno en este periodo.`)
+
+      //Hacemos la conversión para que nos la acepte el método, usando la cantidad recaudada.
+      const montoTransferencia = u128.mul(ONE_NEAR, u128.from(pers[indice].cantidadRecaudada))
+
+      //E iniciamos la promesa de pago, usando el usuario en turno y la conversión de arriba.
+      ContractPromiseBatch.create(pers[indice].usuarioTurno).transfer(montoTransferencia)
+
+      //Y notificamos de éxito.
+      logging.log(`La Tanda fue pagada exitosamente. El usuario ${pers[indice].usuarioTurno}
+      recibió ${pers[indice].cantidadRecaudada} NEAR correspondientes al periodo #${indice + 1}
+      de la Tanda ${tanda.nombre} con fecha ${getFechaActual()}`)
+
+      //Por último, modificamos la flag de que la tanda ya está pagada
+      pers[indice].tandaPagada = true
+
+      //Y guardamos en la blockchain. Este periodo ya fue pagado
+      tandaPeriodos.set(key, pers)
+
+      //Y regresamos que fue pagada
+      return true
+    }
+  }
+  //Obviamente si algo de arriba no existió retorna falso
+  return false
 }

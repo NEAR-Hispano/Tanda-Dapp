@@ -104,6 +104,7 @@ export class Periodos {
     public pagosCompletos: bool;
     public tandaPagada: bool;
     public cantidadRecaudada: u64;
+    public integrantesPagados: Array<string>;
 
     constructor(inicio: string, final: string){
         this.inicio = inicio;
@@ -112,5 +113,6 @@ export class Periodos {
         this.pagosCompletos = false;
         this.tandaPagada = false;
         this.cantidadRecaudada = 0;
+        this.integrantesPagados = new Array;
     }
 }
