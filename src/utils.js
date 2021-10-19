@@ -29,7 +29,8 @@ export async function initContract() {
       'consultarTandasInscritas',
       'consultarTandasCreadas',
       'agregarIntegrante', 
-      'generarPeriodos'
+      'generarPeriodos',
+      'pagarTanda'
       ],
   })
 }

@@ -30,8 +30,16 @@ function AdministrarTanda({ match }) {
             setPagos(data)
           })
 
-          window.contract.generarPeriodos().then(data => {
-            setPeriodos(data)
+          window.contract.generarPeriodos({key: match.params.id}).then(periodosLista => {
+            if(periodosLista){
+              const data = periodosLista.map((elemento, index) => { 
+                  return `Turno ${index+1}: Del ${elemento.inicio} al ${elemento.final}`
+                }
+              );
+              setPeriodos(data)
+            }
+            
+            
           })
         }
     },
@@ -47,7 +55,8 @@ function AdministrarTanda({ match }) {
 
   useEffect(
     () => {
-        console.log(integrantesTanda)        
+      
+      console.log(integrantesTanda)        
     },
     [integrantesTanda]
   )
@@ -115,7 +124,7 @@ function AdministrarTanda({ match }) {
           style={{background:'white', width: '20%', marginLeft: '10em'}}
           header={<div><strong>Fechas de pago</strong></div>}
           bordered
-          dataSource={integrantesTanda}
+          dataSource={periodos}
           renderItem={item => (
             <List.Item>
               <CalendarOutlined /> {item}

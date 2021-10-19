@@ -5,6 +5,11 @@ import { TandaCard } from './TandaCard';
 import { TandaPagoCard } from './TandaPagoCard';
 
 export const TandaCardMap = ({tandas, origen}) => {
+    if (!tandas) {
+        return (
+            <div>No se encontraron registros</div>
+        );
+    }
     return (
         <div className="site-card-wrapper">
             <Row >
