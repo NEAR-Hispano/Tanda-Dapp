@@ -4,8 +4,6 @@ import { Layout, Tabs } from 'antd';
 //Componentes
 import BuscarTandas2 from './BuscarTandas2';
 import CrearTanda from './CrearTanda';
-import EditarTanda from './EditarTanda';
-
 
 function Principal() {
   const { TabPane } = Tabs;
@@ -20,15 +18,13 @@ function Principal() {
           </div>
         </TabPane>
         <TabPane tab="Mis Tandas" key="2">
-        <div className='tc'>
-            <BuscarTandas2 origen='mis-tandas'/>
-          </div>
+          <BuscarTandas2 origen='mis-tandas'/>
         </TabPane>
-        <TabPane tab="Crear Tanda" key="3">
+        <TabPane tab="Administrar Tandas" key="3">
+          <BuscarTandas2 origen='administrar-tandas'/>
+        </TabPane>
+        <TabPane tab="Crear Tanda" key="4">
           <CrearTanda/>
-        </TabPane>
-        <TabPane tab="Editar Tanda" key="4">
-          <EditarTanda/>
         </TabPane>
       </Tabs>        
     </Layout>

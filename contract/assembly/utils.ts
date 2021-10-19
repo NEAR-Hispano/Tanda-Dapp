@@ -1,4 +1,4 @@
-import { u128 } from 'near-sdk-as';
+import { u128, datetime } from 'near-sdk-as';
 
 /**
  * == CONSTANTS ================================================================
@@ -94,4 +94,8 @@ export function asNEAR(amount: u128): string {
  */
 export function toYocto(amount: number): u128 {
   return u128.mul(ONE_NEAR, u128.from(amount))
+}
+
+export function getFechaActual(): string {
+  return datetime.block_datetime().toString().split('T')[0];
 }

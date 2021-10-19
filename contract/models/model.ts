@@ -1,4 +1,4 @@
-import { context, u128, PersistentMap, PersistentVector, math, logging } from "near-sdk-as";
+import { context, u128, PersistentMap, PersistentVector, math, logging, PersistentUnorderedMap } from "near-sdk-as";
 import { AccountId, MAX_PAGE_SIZE, Money, Periodo } from "../assembly/utils";
 
 @nearBindgen
@@ -21,11 +21,12 @@ export class Tanda {
         this.monto = monto;
         this.activa = false;
         this.periodo = periodo;
-        this.integrantes = new PersistentVector<Integrante>("I");
+        this.integrantes = new PersistentVector<Integrante>(`${context.blockIndex}`);
         this.creador = context.sender;
     }
 
     agregarIntegrante(integrante: Integrante): void{
+
         if (this.integrantes.length < <i32>this.numIntegrantes) {
             this.integrantes.push(integrante);
             logging.log(`Integrante nuevo ${integrante.accountId} agregado exitosamente`);
@@ -51,51 +52,67 @@ export const tandas = new PersistentMap<string, Tanda>("m");
 // Almancenamiento de los identificadores de las tandas registradas
 export const keys = new PersistentVector<string>("k");
 
+//Almacenamiento para usuarios
+export const usuarios = new PersistentUnorderedMap<string, Usuario>("u");
 
+//Almacenamiento para los pagos
+export const pagos = new PersistentUnorderedMap<string, Map<string,Array<Pago>>>("hp");
+
+//Almacenamiento datos de periodo
+export const tandaPeriodos = new PersistentUnorderedMap<string, Array<Periodos>>("S")
 
 @nearBindgen
-export class Integrante {
+export class Usuario {
     public accountId: AccountId;
-    public pagos: PersistentMap<string, Array<Pago>>;
-    
+    public tandasCreadas: Array<string>;
+    public tandasInscritas: Array<string>;
+
     constructor(accountId: AccountId){
         this.accountId =accountId;
-        this.pagos =  new PersistentMap<string, Array<Pago>>("p");
-    }
-    
-    agregarPago(semanaId: string, pago: Pago): void{
-        const periodoPagos = this.pagos.get(semanaId);
-        if(periodoPagos){
-            periodoPagos.push(pago);
-            logging.log(`El integrante ${this.accountId} ha realizado un pago de ${pago.monto} exitosamente`);
-        }
-        logging.log(`Periodo de pagos no encontrado`);
-    }
-
-    consultarPagos(semanaId: string): Array<Pago> | null {
-        const periodoPagos = this.pagos.get(semanaId);
-        if(periodoPagos){
-            const numMessages = min(MAX_PAGE_SIZE, periodoPagos.length);
-            const startIndex = periodoPagos.length - numMessages;
-            const result = new Array<Pago>(numMessages);
-            for(let i = 0; i < numMessages; i++) {
-                result[i] = periodoPagos[i + startIndex];
-            }
-            return result;
-        }
-        return null;
+        this.tandasCreadas = new Array;
+        this.tandasInscritas = new Array;
     }
 }
 
 @nearBindgen
+export class Integrante {
+    public accountId: AccountId;
+    
+    constructor(accountId: AccountId){
+        this.accountId =accountId;
+    }
+    
+    
+}
+
+@nearBindgen
 export class Pago {
-    public tandaId: string;
     public monto: Money;
     public fechaPago: string;
 
-    constructor(tandaId: string, monto: Money, fechaPago: string){
-        this.tandaId = tandaId;
+    constructor(monto: Money, fechaPago: string){
         this.monto = monto;
         this.fechaPago = fechaPago;
+    }
+}
+
+@nearBindgen
+export class Periodos {
+    public inicio: string;
+    public final: string;
+    public usuarioTurno: AccountId;
+    public pagosCompletos: bool;
+    public tandaPagada: bool;
+    public cantidadRecaudada: u64;
+    public integrantesPagados: Array<string>;
+
+    constructor(inicio: string, final: string){
+        this.inicio = inicio;
+        this.final = final;
+        this.usuarioTurno = '';
+        this.pagosCompletos = false;
+        this.tandaPagada = false;
+        this.cantidadRecaudada = 0;
+        this.integrantesPagados = new Array;
     }
 }
