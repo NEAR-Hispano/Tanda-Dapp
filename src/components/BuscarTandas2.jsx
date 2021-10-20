@@ -28,10 +28,8 @@ function BuscarTandas2({origen}){
                 }
                 //Si es de la vista de Mis Tandas, solo mostramos nuestras tandas.
                 else if (origen === 'mis-tandas'){
-                    window.contract.consultarTandasPorOwner({})
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
                     window.contract.consultarTandasInscritas({})
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
                 }
                 else if (origen === 'administrar-tandas'){
                     window.contract.consultarTandasCreadas({})
