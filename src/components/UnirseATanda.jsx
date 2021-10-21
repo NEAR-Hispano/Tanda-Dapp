@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Modal, Button, Tag, Spin } from 'antd';
-import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
-import { Periodos } from './../utils/enums';
 
-export const UnirseATanda = ({tanda}) => {
+import React, { useState } from 'react';
+import { Modal, Button } from 'antd';
+
+export const UnirseATanda = ({tanda, turno}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
 
@@ -12,8 +10,9 @@ export const UnirseATanda = ({tanda}) => {
         setLoading(true)
 
         try{
-            window.contract.agregarIntegrante({key: tanda.id})
-            .then(() => {setLoading(false)})
+            window.contract.escogerTurno({key: tanda.id, turno: new Int32Array(turno)}).then(() => {setLoading(false)})
+            /*window.contract.agregarIntegrante({key: tanda.id})
+            .then(() => {setLoading(false)})*/
         }
         catch (e) {
             //Mandamos una alerta.

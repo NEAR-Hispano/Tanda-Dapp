@@ -10,6 +10,18 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
     const [integrantePago, setIntegrantePago] = useState({});
+
+    const realizarPago = () => {
+        window.contract.agregarIntegrantePago(
+            { // Definición de los argumentos del método
+                key: tanda.id
+            }, 
+            BOATLOAD_OF_GAS, // Añadimos una cantidad de GAS
+            utils.format.parseNearAmount(`${tanda.monto}`) // Conversion de la cantidad de un string numerico a near
+        ).then(response => {
+            setIntegrantePago(response);
+        }); 
+    }
     
     const handleModal = () => {
         if (tanda.activa) {
@@ -22,19 +34,14 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
                         Fecha de pago: { moment().format('YYYY-MM-DD') }
                     </>
                 ),
-            };
+                onOk() { // Si el boton de OK es presionado
+                    realizarPago();
+                },
+                onCancel() { // Si el boton de Cancelar es presionado
+                },
+            };      
             modal.success(config);
-        
             
-            window.contract.agregarIntegrantePago(
-                { // Definición de los argumentos del método
-                    key: tanda.id
-                }, 
-                BOATLOAD_OF_GAS, // Añadimos una cantidad de GAS
-                utils.format.parseNearAmount(`${tanda.monto}`) // Conversion de la cantidad de un string numerico a near
-            ).then(response => {
-                setIntegrantePago(response);
-            }); 
         } else {
             const config = {
                 title: `${tanda.nombre}`,
