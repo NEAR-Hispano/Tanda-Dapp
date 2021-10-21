@@ -1,29 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Button, Tag, Spin } from 'antd';
+import React, { useState } from 'react';
+import { utils } from 'near-api-js'
+import { Modal, Button } from 'antd';
 import {  CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
-import { ONE_NEAR } from '../utils/enums';
 import moment from 'moment';
-import Big from 'big.js';
 
-const BOATLOAD_OF_GAS = Big(3).times(10 ** 13).toFixed();
+const BOATLOAD_OF_GAS = 300000000000000;
 
 export const TandaPagoModal = ({tanda, setActiva, activa}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
     const [integrantePago, setIntegrantePago] = useState({});
     
-    console.log('FECHA', moment().format('YYYY-MM-DD'));
-    const handleActivar = () =>{
-        setLoading(true);
-        window.contract.cambiarEstadoTanda({key: tanda.id}).then((tandaActualizada) =>{
-            tanda = {...tandaActualizada };
-            setActiva(tanda.activa)
-            setLoading(false);           
-        });
-    }
-
     const handleModal = () => {
-        if (!tanda.activa) {
+        if (tanda.activa) {
             const config = {
                 title: `${tanda.nombre}`,
                 content: (
@@ -37,11 +26,14 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
             modal.success(config);
         
             
-            console.log(tanda);
-            window.contract.agregarIntegrantePago({ key: tanda.id}, BOATLOAD_OF_GAS,
-                (new Big(1 || '0').times(10 ** 24).toFixed())).then(response => {
-                //setIntegrantePago(response);
-                console.log(response);
+            window.contract.agregarIntegrantePago(
+                { // Definición de los argumentos del método
+                    key: tanda.id
+                }, 
+                BOATLOAD_OF_GAS, // Añadimos una cantidad de GAS
+                utils.format.parseNearAmount(`${tanda.monto}`) // Conversion de la cantidad de un string numerico a near
+            ).then(response => {
+                setIntegrantePago(response);
             }); 
         } else {
             const config = {
@@ -55,7 +47,6 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
             };
             modal.error(config);
         }
-        
     }
 
     return (
