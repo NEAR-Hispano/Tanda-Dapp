@@ -12,7 +12,7 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
     const [integrantePago, setIntegrantePago] = useState({});
     
     const handleModal = () => {
-        if (!tanda.activa) {
+        if (tanda.activa) {
             const config = {
                 title: `${tanda.nombre}`,
                 content: (
