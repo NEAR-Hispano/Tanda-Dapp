@@ -41,7 +41,7 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
                 content: (
                     <>
                         <StopOutlined style={{ fontSize: '100px', color: '#900C3F', marginLeft: '30%'}} /> <br/><br/>
-                        <b> AÚN NO SE PUEDE REALIZAR EL PAGO DE LA TANDA, YA QUE SE ENCUENTRA INACTIVADA</b> <br/>
+                        <b> AÚN NO SE PUEDE REALIZAR EL PAGO DE LA TANDA, YA QUE SE ENCUENTRA INACTIVA</b> <br/>
                     </>
                 ),
             };
