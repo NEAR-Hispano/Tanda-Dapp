@@ -10,7 +10,7 @@ export const UnirseATanda = ({tanda, turno}) => {
         setLoading(true)
 
         try{
-            window.contract.escogerTurno({key: tanda.id, turno: new Int32Array(turno)}).then(() => {setLoading(false)})
+            window.contract.escogerTurno({key: tanda.id, numTurno: `${turno}`}).then(() => {setLoading(false)})
             /*window.contract.agregarIntegrante({key: tanda.id})
             .then(() => {setLoading(false)})*/
         }
