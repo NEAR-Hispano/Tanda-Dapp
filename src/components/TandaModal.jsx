@@ -37,10 +37,10 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                     <b>Fecha Fin:</b> {tanda.fechaFin} <br/>
                     <b>Activa:</b> <Tag 
                         icon={activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} 
-                        color={activa ? "success" : "warning"} 
+                        color={activa ? "success" : "default"} 
                         onClick={origen === 'administrar-tandas' ? handleActivar : null} 
                         style={{ cursor: 'pointer' }}>
-                            {activa? 'Activa': 'Pendiente'}</Tag><br/>
+                            {activa? 'Activa': 'Inactiva'}</Tag><br/>
                     <b>Periodo:</b> {Periodos[tanda.periodo]} <br/>
                     {origen === 'administrar-tandas' ? (
                         <Link to={`/administrar-tanda/${tanda.id}`}>

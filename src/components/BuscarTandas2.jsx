@@ -60,16 +60,6 @@ function BuscarTandas2({origen}){
         //Esto va a hacer que el useEffect de arriba se ejecute, lo que hará que se carguen las nuevas tandas
     }
 
-
-    const handlePago = () => {
-
-        
-
-        window.contract.agregarIntegrantePago({key:'63472608', semanaId: '1', amount: 1}).then(response =>{
-            console.log(response, window.accountId);
-        });
-    }
-
     //Regresamos solo 2 componentes, nuestro Input y nuestro mapa de Tandas
     return(
         <>
@@ -77,7 +67,6 @@ function BuscarTandas2({origen}){
         <span>
             <SearchOutlined style={{margin: '5px'}} /><Input onChange={onSearchChange} placeholder={'Buscar tanda'} style={{width: '18em'}}/>
         </span>
-        <Button type='primary' onClick={handlePago}>Pagar</Button>
         {/* TandaCardMap requiere un arreglo, vamos a evaluar cuál arreglo mandarle.
           * Si el campo de búsqueda está vacío, entonces mandamos las tandas completas, desde el estado.
           * Pero si no, entonces significa que hay tandas filtradas, y mandamos ese arreglo.
