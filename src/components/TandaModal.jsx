@@ -11,7 +11,16 @@ const { Option } = Select;
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
-    const [periodos, setPeriodos] = useState({periodos: {}, turno: undefined});
+    const [turno, setTurno] = useState(undefined);
+    const [turno2, setTurno2] = useState(undefined);
+
+    //Fancy console log
+    useEffect(
+        () => {
+           setTurno2(turno)
+        },
+        [turno]
+    )
     
     const handleActivar = () =>{
         setLoading(true);
@@ -27,11 +36,6 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
         let integrantes = [];
         window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
             integrantes = response;
-        });
-
-        window.contract.consultarPeriodos({key: tanda.id}).then((periodosLista) =>{
-            setPeriodos({...periodos, periodos: periodosLista}); 
-            console.log(periodos);          
         });
 
         console.log(origen)
@@ -59,8 +63,8 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                     {origen === 'principal' ? 
                         <>
                         <b>Turnos disponibles: </b>
-                        <PeriodosLista periodos={periodos}  setPeriodos={setPeriodos}/> <br/> <br/>
-                        <UnirseATanda tanda={tanda} turno={periodos.turno}/> 
+                        <PeriodosLista tanda={tanda} setTurno={setTurno}/> <br/> <br/>
+                        <UnirseATanda tanda={tanda} turno={turno2}/> 
                         </>
                         : null}
                 </Spin>  

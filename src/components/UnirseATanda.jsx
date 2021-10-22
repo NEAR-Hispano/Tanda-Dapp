@@ -1,18 +1,32 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button } from 'antd';
 
 export const UnirseATanda = ({tanda, turno}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
 
+    const [unido, setUnido] = useState(false);
+
+
+    //Fancy console log
+    useEffect(
+        () => {
+            console.log('from unirse'+turno)
+        },
+        [turno]
+    )
+
     const unirATanda = () => {
         setLoading(true)
+        console.log('turno: ' + turno)
 
         try{
-            window.contract.escogerTurno({key: tanda.id, numTurno: `${turno}`}).then(() => {setLoading(false)})
-            /*window.contract.agregarIntegrante({key: tanda.id})
-            .then(() => {setLoading(false)})*/
+            
+            // window.contract.agregarIntegrante({key: tanda.id})
+            // .then(() => {setUnido(true)})
+            console.log('turno: ' + turno)
+            setUnido(true)
         }
         catch (e) {
             //Mandamos una alerta.
@@ -28,6 +42,16 @@ export const UnirseATanda = ({tanda, turno}) => {
         
     }
 
+    useEffect(
+        () => {
+            if (window.walletConnection.isSignedIn() && unido==true) {
+                window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`})
+                .then(() => {setLoading(false)})
+            }
+        },
+        [unido]
+    )
+
     const handleModal = () => {
         const config = {
             title: `¡Precaución ${window.accountId}!`,
@@ -38,7 +62,7 @@ export const UnirseATanda = ({tanda, turno}) => {
                     tanda no puede eliminar usuarios ni cancelar la Tanda.
                 </p>
                 <p>
-                    Al unirte, aceptas que enviarás {tanda.monto} cada {tanda.periodo} días,
+                    Al unirte, aceptas que enviarás {tanda.monto} NEAR cada {tanda.periodo} días,
                     siendo puntual en tus pagos.
                 </p>
                 <br/>
