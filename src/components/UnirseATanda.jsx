@@ -1,56 +1,11 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Modal, Button } from 'antd';
 
-export const UnirseATanda = ({tanda, turno}) => {
+export const UnirseATanda = ({tanda, setAceptarUnirse}) => {
     const [modal, contextHolder] = Modal.useModal();
-    const [loading, setLoading] = useState(false);
 
-    const [unido, setUnido] = useState(false);
-
-
-    //Fancy console log
-    useEffect(
-        () => {
-            console.log('from unirse'+turno)
-        },
-        [turno]
-    )
-
-    const unirATanda = () => {
-        setLoading(true)
-        console.log('turno: ' + turno)
-
-        try{
-            
-            // window.contract.agregarIntegrante({key: tanda.id})
-            // .then(() => {setUnido(true)})
-            console.log('turno: ' + turno)
-            setUnido(true)
-        }
-        catch (e) {
-            //Mandamos una alerta.
-            //Por lo general, con que cierres tu sesión y la vuelvas a abrir se arregla.
-            alert(
-              '¡Algo salió mal! ' +
-              '¿Talvez reinicia tu sesión? ' +
-              'Revisa la consola para más información!!'
-            )
-            //Y lanzamos el error
-            throw e
-        }
-        
-    }
-
-    useEffect(
-        () => {
-            if (window.walletConnection.isSignedIn() && unido==true) {
-                window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`})
-                .then(() => {setLoading(false)})
-            }
-        },
-        [unido]
-    )
+    const [cargando, setCargando] = useState(false);
 
     const handleModal = () => {
         const config = {
@@ -72,7 +27,8 @@ export const UnirseATanda = ({tanda, turno}) => {
                 </>
             ),
             onOk() {
-                unirATanda(tanda);
+                setCargando(true)
+                setAceptarUnirse(true);
             },
             onCancel() {
             },
@@ -83,7 +39,7 @@ export const UnirseATanda = ({tanda, turno}) => {
 
     return (
         <>      
-            <Button type="primary" onClick={handleModal} loading={loading}>Unirse</Button>
+            <Button type="primary" onClick={handleModal} loading={cargando}>Unirse</Button>
             {/* `contextHolder` should always under the context you want to access */}
             {contextHolder}
         </>

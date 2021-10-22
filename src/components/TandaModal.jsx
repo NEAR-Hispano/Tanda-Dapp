@@ -11,16 +11,7 @@ const { Option } = Select;
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
-    const [turno, setTurno] = useState(undefined);
-    const [turno2, setTurno2] = useState(undefined);
-
-    //Fancy console log
-    useEffect(
-        () => {
-           setTurno2(turno)
-        },
-        [turno]
-    )
+    const [turno, setTurno] = useState();
     
     const handleActivar = () =>{
         setLoading(true);
@@ -32,13 +23,57 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
         
     }
 
+    const [aceptarUnirse, setAceptarUnirse] = useState(false)
+
+    useEffect(
+        () => {
+            console.log(aceptarUnirse)
+           if(aceptarUnirse){
+            unirATanda()
+           }
+        },
+        [aceptarUnirse]
+    )
+
+
+    const [unido, setUnido] = useState(false);
+
+    const unirATanda = () => {
+
+        try{
+            window.contract.agregarIntegrante({key: tanda.id})
+            .then(() => {setUnido(true)})
+        }
+        catch (e) {
+            //Mandamos una alerta.
+            //Por lo general, con que cierres tu sesión y la vuelvas a abrir se arregla.
+            alert(
+              '¡Algo salió mal! ' +
+              '¿Talvez reinicia tu sesión? ' +
+              'Revisa la consola para más información!!'
+            )
+            //Y lanzamos el error
+            throw e
+        }
+        
+    }
+
+    useEffect(
+        () => {
+            if (window.walletConnection.isSignedIn() && unido==true) {
+                window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`})
+                .then(() => {setLoading(false)})
+            }
+        },
+        [unido]
+    )
+
     const handleModal = () => {
         let integrantes = [];
         window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
             integrantes = response;
         });
 
-        console.log(origen)
         const config = {
             title: `${tanda.nombre}`,
             content: (
@@ -64,14 +99,13 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                         <>
                         <b>Turnos disponibles: </b>
                         <PeriodosLista tanda={tanda} setTurno={setTurno}/> <br/> <br/>
-                        <UnirseATanda tanda={tanda} turno={turno2}/> 
+                        <UnirseATanda tanda={tanda} setAceptarUnirse={setAceptarUnirse}/> 
                         </>
                         : null}
                 </Spin>  
                 </>
             ),
         };
-        console.log('STATUS ',loading);
         modal.confirm(config);
     }
 
