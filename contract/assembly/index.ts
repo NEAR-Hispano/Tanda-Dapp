@@ -278,20 +278,22 @@ export function agregarIntegrantePago(key: string): bool {
   const tanda = tandas.get(key);
   assert(tanda, `La Tanda ${key} no existe`);
 
+  const monto = context.attachedDeposit;
+
   //Si el pago no es por la cantidad establecida en la Tanda, lo rechazamos
   if(tanda){
-    assert(context.attachedDeposit == u128.mul(ONE_NEAR, u128.from(tanda.monto)),
+    assert(monto == u128.mul(ONE_NEAR, u128.from(tanda.monto)),
     `Sólo se pueden realizar pagos por la cantidad establecida en la Tanda (${tanda.monto} NEAR).`)
   }
   
   // Almacenamos los valores generales para registrar el contrato
-  const cuentaId = context.sender;
+  const cuentaId = context.predecessor;
 
   // Validamos que el usuario exista en la tanda
   const valido =  validarIntegrante(consultarIntegrantes(key), cuentaId);
   assert(valido, `El usuario ${cuentaId} no es integrante de la tanda`);
 
-  const monto = context.attachedDeposit;
+  
   assert(monto >  u128.Zero, 'El pago debe ser mayor a cero');
 
   // Creamos el objeto del pago
@@ -306,7 +308,7 @@ export function agregarIntegrantePago(key: string): bool {
   if(pers){
 
     //Vamos a consultar a que periodo corresponde este pago
-    const indice = validarPeriodo(key, context.sender)
+    const indice = validarPeriodo(key, cuentaId)
 
     let msg = "";
 
@@ -325,11 +327,11 @@ export function agregarIntegrantePago(key: string): bool {
       }
     }
     //Mandamos el error correspondiente en caso de que sea necesario
-    assert(indice >= 0, `El usuario ${context.sender} no puede realizar pagos. ${msg}`)
+    assert(indice >= 0, `El usuario ${cuentaId} no puede realizar pagos. ${msg}`)
 
     //Y con ese indice, agregamos la informacion que necesitamos
     //Es decir, ingresamos al integrante en la lista de integrantes que ya pagaron
-    pers[indice].integrantesPagados.push(context.sender)
+    pers[indice].integrantesPagados.push(cuentaId)
     //Y sumamos la cantidad que se pagó a la cantidad total de ese periodo
     pers[indice].cantidadRecaudada += <u64>parseInt(asNEAR(monto),10);
 
@@ -351,7 +353,7 @@ export function agregarIntegrantePago(key: string): bool {
     //ahora creamos un nuevo mapa, este es el que esta adentro del persistent map
     let paymentMap = new Map<string, Array<Pago>>();
 
-    //le mandamos como clave el que envia (context.sender) y el arreglo de pagos de arriba
+    //le mandamos como clave el que envia (cuentaId) y el arreglo de pagos de arriba
     paymentMap.set(cuentaId, [nuevoPago]);
 
     // En caso de que no existan registros de pago de la tanda, se añade un nuevo registro completo
@@ -733,7 +735,7 @@ export function consultarPeriodos(key: string): Array<Periodos> | null {
   return pers ? pers : null
 }
 
-export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
+export function escogerTurno(key: string, numTurno: u64): Array<Periodos> | null {
   //Validamos que la tanda exista
   assert(tandas.get(key), `La Tanda ${key} no existe.`)
 
@@ -746,6 +748,7 @@ export function escogerTurno(key: string, turno: i32): Array<Periodos> | null {
 
   //Si están inicializados
   if(pers){
+    const turno = <i32>numTurno;
     //Validamos que el turno que mandamos sea correcto
     //Es decir, necesitamos que el turno sea menor o igual a la cantidad de periodos de la Tanda
     //Y que sea mayor a cero

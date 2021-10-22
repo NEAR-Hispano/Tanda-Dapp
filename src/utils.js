@@ -30,7 +30,9 @@ export async function initContract() {
       'consultarTandasCreadas',
       'agregarIntegrante', 
       'generarPeriodos',
-      'pagarTanda'
+      'pagarTanda',
+      'consultarPeriodos',
+      'escogerTurno'
       ],
   })
 }
