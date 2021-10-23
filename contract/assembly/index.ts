@@ -658,7 +658,7 @@ export function cancelarTanda(key: string): Tanda | null{
     assert(tanda.creador == context.sender, 'No cuentas con autorización para modificar esta Tanda');
 
     //Si la está activa, no se puede cancelar.
-    assert(!tanda.activa, `Esta Tanda ya se encuentra en progreso, no se puede cancelar.`)
+    assert(consultarTandaPagos(key), `Esta Tanda ya se encuentra en progreso, no se puede cancelar.`)
 
     //La desactivamos
     tanda.activa = false

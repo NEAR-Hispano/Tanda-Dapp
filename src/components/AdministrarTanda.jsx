@@ -19,6 +19,7 @@ function AdministrarTanda({ match }) {
   const [integrantesTanda, setIntegrantesTanda] = useState([]);
   const [pagos, setPagos] = useState([]);
   const [periodos, setPeriodos] = useState([]);
+  const [estatusIcon, setEstatusIcon] = useState();
 
   useEffect(
     () => {
@@ -56,7 +57,10 @@ function AdministrarTanda({ match }) {
   // fancy console logs 
   useEffect(
     () => {
-        console.log(tandaInfo)        
+        console.log(tandaInfo) 
+        setEstatusIcon(tandaInfo && !tandaInfo.activa ? 
+          <CheckCircleOutlined style={{color: '#0BAD26' }} />: 
+          <CloseCircleOutlined style={{color: '#C70039' }} />);       
     },
     [tandaInfo]
   )
@@ -84,13 +88,14 @@ function AdministrarTanda({ match }) {
   )
 
   const tandaOnOff = () => {
-    console.log('Tanda estatus: ', tandaInfo.activa);
-    if(!tandaInfo.activa){ // Si la tanda esta activa, llamar al método de desactivar
+    setEstatusIcon(<LoadingOutlined/>);
+    if(!tandaInfo.activa){ 
       window.contract.activarTanda({
         key: tandaInfo.id
       }, BOATLOAD_OF_GAS).then(response => {
         console.log(response);
         console.log('La tanda ha sido activada');
+        setEstatusIcon(<CloseCircleOutlined style={{color: '#C70039' }} />);   
       });
     }else{
       
@@ -99,6 +104,7 @@ function AdministrarTanda({ match }) {
       }, BOATLOAD_OF_GAS).then(response => {
         console.log(response);
         console.log('La tanda ha sido desactivada');
+        setEstatusIcon(<CheckCircleOutlined style={{color: '#0BAD26' }} />);   
       });
     }
   }
@@ -134,11 +140,7 @@ function AdministrarTanda({ match }) {
         </span>
         <span style={{textAlign:'right', marginRight:'2em'}}>
         <Tooltip title={tandaInfo && !tandaInfo.activa ? "Activar Tanda": "Cancelar Tanda"}>
-          <Button shape="circle" icon={
-            tandaInfo && !tandaInfo.activa ? 
-            <CheckCircleOutlined style={{color: '#0BAD26' }} />: 
-            <CloseCircleOutlined style={{color: '#C70039' }} />
-          } style={{margin:'5px'}} onClick={tandaOnOff} /> 
+          <Button shape="circle" icon={estatusIcon } style={{margin:'5px'}} onClick={tandaOnOff} /> 
         </Tooltip>
         <Link to={`/administrar-tanda/editar-tanda/${match.params.id}`}>
           <Tooltip title='Editar Tanda'>
