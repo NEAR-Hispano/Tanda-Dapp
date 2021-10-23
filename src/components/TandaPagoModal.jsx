@@ -1,16 +1,11 @@
 import React, { useState } from 'react';
 import { utils } from 'near-api-js'
 import { Modal, Button } from 'antd';
-import {  CheckCircleOutlined, StopOutlined } from '@ant-design/icons';
-import moment from 'moment';
+import { StopOutlined } from '@ant-design/icons';
 
 
-const BOATLOAD_OF_GAS = 300000000000000;
-
-export const TandaPagoModal = ({tanda, setActiva, activa}) => {
+export const TandaPagoModal = ({tanda}) => {
     const [modal, contextHolder] = Modal.useModal();
-    const [loading, setLoading] = useState(false);
-    const [integrantePago, setIntegrantePago] = useState({});
 
     const handleModal = () => {
         if (tanda.activa) {

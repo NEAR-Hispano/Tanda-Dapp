@@ -1,8 +1,16 @@
 import React, { useEffect, useState } from 'react';
 import { List, Layout, Button, Tree, Tooltip } from 'antd';
-import { UserOutlined, FileDoneOutlined, CalendarOutlined, CheckCircleOutlined, EditOutlined, LoadingOutlined} from '@ant-design/icons';
+import { 
+  UserOutlined, 
+  FileDoneOutlined, 
+  CalendarOutlined, 
+  CheckCircleOutlined, 
+  EditOutlined, 
+  LoadingOutlined, 
+  CloseCircleOutlined
+} from '@ant-design/icons';
 import { Link } from 'react-router-dom';
-import { ONE_NEAR } from '../utils/enums';
+import { ONE_NEAR, BOATLOAD_OF_GAS } from '../utils/enums';
 
 function AdministrarTanda({ match }) {
 
@@ -80,7 +88,7 @@ function AdministrarTanda({ match }) {
     if(!tandaInfo.activa){ // Si la tanda esta activa, llamar al método de desactivar
       window.contract.activarTanda({
         key: tandaInfo.id
-      }).then(response => {
+      }, BOATLOAD_OF_GAS).then(response => {
         console.log(response);
         console.log('La tanda ha sido activada');
       });
@@ -88,7 +96,7 @@ function AdministrarTanda({ match }) {
       
       window.contract.cancelarTanda({
         key: tandaInfo.id
-      }).then(response => {
+      }, BOATLOAD_OF_GAS).then(response => {
         console.log(response);
         console.log('La tanda ha sido desactivada');
       });
@@ -126,11 +134,15 @@ function AdministrarTanda({ match }) {
         </span>
         <span style={{textAlign:'right', marginRight:'2em'}}>
         <Tooltip title={tandaInfo && !tandaInfo.activa ? "Activar Tanda": "Cancelar Tanda"}>
-          <Button type="primary" shape="circle" icon={<CheckCircleOutlined />} style={{margin:'5px'}} onClick={tandaOnOff} /> 
+          <Button shape="circle" icon={
+            tandaInfo && !tandaInfo.activa ? 
+            <CheckCircleOutlined style={{color: '#0BAD26' }} />: 
+            <CloseCircleOutlined style={{color: '#C70039' }} />
+          } style={{margin:'5px'}} onClick={tandaOnOff} /> 
         </Tooltip>
         <Link to={`/administrar-tanda/editar-tanda/${match.params.id}`}>
           <Tooltip title='Editar Tanda'>
-            <Button type="primary" shape="circle" icon={<EditOutlined />} style={{margin:'5px'}} /> 
+            <Button shape="circle" icon={<EditOutlined />} style={{margin:'5px'}} /> 
           </Tooltip>
         </Link>
       </span>
