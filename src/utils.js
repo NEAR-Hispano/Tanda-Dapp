@@ -23,7 +23,8 @@ export async function initContract() {
     changeMethods: 
       ['crearTanda',
       'editarTanda', 
-      'cambiarEstadoTanda', 
+      'activarTanda', 
+      'cancelarTanda', 
       'consultarTandasPorOwner',
       'agregarIntegrantePago',
       'consultarTandasInscritas',
