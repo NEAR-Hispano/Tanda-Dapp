@@ -30,7 +30,7 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
                 content: (
                     <>
                         <CheckCircleOutlined style={{ fontSize: '100px', color: '#6aa84f', marginLeft: '30%'}} /> <br/><br/>
-                        <b> SU PAGO DE {tanda.monto} NEAR SE REALIZÓ EXITOSAMENTE </b> <br/>
+                        <b> SU PAGO DE {tanda.monto} NEAR SE VA A PROCESAR... </b> <br/>
                         Fecha de pago: { moment().format('YYYY-MM-DD') }
                     </>
                 ),

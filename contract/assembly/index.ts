@@ -60,6 +60,9 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   //Llamamos a la función encargada de registrar añadir el registro del nuevo usuario en la colección de usuarios 
   registrarUsuario(context.sender, tanda.id, true);
 
+  //Llamamos a la función que genera los periodos
+  generarPeriodos(tanda.id);
+
   //Regresamos la Tanda
   return tanda
 }
@@ -466,7 +469,7 @@ export function activarTanda(key: string): Tanda | null {
       Hacen falta ${tanda.numIntegrantes - tanda.integrantes.length} integrantes.`)
     
     //Si pasamos por todo esto podemos empezar a hacer los cambios.
-    tanda.activa = true;
+    
 
     //Y se necesita validar si es necesario editar las fechas de los periodos
     const fechaHoy = datetime.block_datetime().toString().split('T')[0];
@@ -482,9 +485,13 @@ export function activarTanda(key: string): Tanda | null {
 
       //Y llamamos a la función para regenerar periodos
       regenerarPeriodos(key)
+
+      tanda.activa = true;
+      tandas.set(key, tanda)
     }
     //Si las fechas fueron iguales, sólo guardamos el cambio en el estado.
     else{
+      tanda.activa = true;
       tandas.set(key, tanda)
     }
     //Si todo sale bien, podemos regresar la Tanda para validar la información.
@@ -502,7 +509,7 @@ export function activarTanda(key: string): Tanda | null {
  * @returns Array<Periodos> | null Si encontró la tanda y se hizo un cambio, regresa los periodos.
  * En caso contrario, retorna null
  */
-export function regenerarPeriodos(key: string): Array<Periodos> | null {
+ function regenerarPeriodos(key: string): Array<Periodos> | null {
   //Validamos que la Tanda y los periodos existan
   assertTandaPeriodos(key)
 
@@ -511,9 +518,6 @@ export function regenerarPeriodos(key: string): Array<Periodos> | null {
   const tanda = tandas.get(key)
 
   if(tanda && pers){
-
-    //Este método sólo se puede ejecutar si la Tanda NO está activa
-    assert(!tanda.activa, `No puedes regenerar los periodos de una Tanda activa.`)
 
     //Y claro, si somos el propietario de la tanda
     assert(tanda.creador == context.sender, 'No cuentas con autorización para modificar esta Tanda');

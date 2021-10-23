@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TandaCardMap } from './TandaCardMap';
+import { TandaCardMapSkeleton } from './TandaCardMapSkeleton'
 import { SearchOutlined } from '@ant-design/icons';
 import { Input, Button } from 'antd';
 
@@ -53,6 +54,18 @@ function BuscarTandas2({origen}){
         [tandaInfo.campoBusqueda]
     )
 
+    //UseEffect para mostrar el esqueleto
+    useEffect(
+        () => {
+            if(tandaInfo.tandas.length > 0){
+                setTandasCargadas(true)
+            }
+        },
+        [tandaInfo.tandas]
+    )
+
+    const [tandasCargadas, setTandasCargadas] = useState(false)
+
     //Función que pasamos al Input, se ejecuta cada que su contenido cambia
     const onSearchChange = (event) => {
         //Guardamos el valor que se introdujo en el estado
@@ -71,7 +84,11 @@ function BuscarTandas2({origen}){
           * Si el campo de búsqueda está vacío, entonces mandamos las tandas completas, desde el estado.
           * Pero si no, entonces significa que hay tandas filtradas, y mandamos ese arreglo.
           * Todo esto es para que nos muestre todas las tandas si no hemos buscado nada.*/}
-        <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} />
+        {
+            tandasCargadas ? <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} /> :
+            <TandaCardMapSkeleton />
+        }
+        {/* <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} /> */}
         </>
     )
 }

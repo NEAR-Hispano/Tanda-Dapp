@@ -27,7 +27,6 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
 
     useEffect(
         () => {
-            console.log(aceptarUnirse)
            if(aceptarUnirse){
             unirATanda()
            }
