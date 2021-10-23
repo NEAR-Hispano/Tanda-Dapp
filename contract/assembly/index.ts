@@ -487,11 +487,13 @@ export function activarTanda(key: string): Tanda | null {
       regenerarPeriodos(key)
 
       tanda.activa = true;
+      tanda.estado = 'Activa'
       tandas.set(key, tanda)
     }
     //Si las fechas fueron iguales, sólo guardamos el cambio en el estado.
     else{
       tanda.activa = true;
+      tanda.estado = 'Activa'
       tandas.set(key, tanda)
     }
     //Si todo sale bien, podemos regresar la Tanda para validar la información.
