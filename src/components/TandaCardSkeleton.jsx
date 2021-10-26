@@ -1,7 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import {  Card, Col, Tag, Button, Skeleton } from 'antd';
+import React from 'react';
+import {  Card, Col, Skeleton } from 'antd';
 import 'antd/dist/antd.css';
-import { TandaModal } from './TandaModal';
 
 export const TandaCardSkeleton = (i) => {
 
