@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { List, Layout, Button, Tree, Tooltip } from 'antd';
+import { List, Layout, Button, Tree, Tooltip, notification } from 'antd';
 import { 
   UserOutlined, 
   FileDoneOutlined, 
@@ -24,24 +24,24 @@ function AdministrarTanda({ match }) {
   useEffect(
     () => {
         if (window.walletConnection.isSignedIn()) {
-          window.contract.consultarTanda({key: match.params.id})
+          window.contract.consultarTanda({key: match.params.id}, BOATLOAD_OF_GAS)
           .then(info => { 
             setTandaInfo(info)
             setNombretanda(info.nombre)
           })
           
-          window.contract.consultarIntegrantes({key: match.params.id})
+          window.contract.consultarIntegrantes({key: match.params.id}, BOATLOAD_OF_GAS)
           .then(info => {
             setIntegrantesTanda(info)
           })
 
-          window.contract.consultarTandaPagos({key: match.params.id}).then(data => {
+          window.contract.consultarTandaPagos({key: match.params.id}, BOATLOAD_OF_GAS).then(data => {
             console.log('Received data:')
             console.log(data)
             setPagos(data)
           })
 
-          window.contract.generarPeriodos({key: match.params.id}).then(periodosLista => {
+          window.contract.generarPeriodos({key: match.params.id}, BOATLOAD_OF_GAS).then(periodosLista => {
             if(periodosLista){
               const data = periodosLista.map((elemento, index) => { 
                   return `Turno ${index+1}: Del ${elemento.inicio} al ${elemento.final}`
@@ -91,24 +91,37 @@ function AdministrarTanda({ match }) {
     [periodos]
   )
 
+  const openNotificationWithIcon = (type, title, description) => {
+    notification[type]({
+      message: title,
+      description,
+    });
+  };
+
   const tandaOnOff = () => {
     setEstatusIcon(<LoadingOutlined/>);
     if(!tandaInfo.activa){ 
       window.contract.activarTanda({
         key: tandaInfo.id
-      }, BOATLOAD_OF_GAS).then(response => {
-        console.log(response);
+      }, BOATLOAD_OF_GAS).then(() => {
         console.log('La tanda ha sido activada');
         setEstatusIcon(<CloseCircleOutlined style={{color: '#C70039' }} />);   
+      }).catch((error) => {
+        const errorResponse = {...error};
+        setEstatusIcon(<CheckCircleOutlined style={{color: '#0BAD26' }} />);
+        openNotificationWithIcon('error',`No se pudo activar la Tanda: ${tandaInfo.nombre}`, errorResponse.kind.ExecutionError.split(', filename:')[0]);
+
       });
-    }else{
-      
+    } else{
       window.contract.cancelarTanda({
         key: tandaInfo.id
-      }, BOATLOAD_OF_GAS).then(response => {
-        console.log(response);
+      }, BOATLOAD_OF_GAS).then(() => {
         console.log('La tanda ha sido desactivada');
         setEstatusIcon(<CheckCircleOutlined style={{color: '#0BAD26' }} />);   
+      }).catch((error) => {
+        setEstatusIcon(<CloseCircleOutlined style={{color: '#C70039' }} />);
+        const errorResponse = {...error};
+        openNotificationWithIcon('error', `No se pudo desactivar la Tanda: ${tandaInfo.nombre}`, errorResponse.kind.ExecutionError.split(', filename:')[0]);
       });
     }
   }
@@ -138,15 +151,15 @@ function AdministrarTanda({ match }) {
           <h1 className='tc'>{nombreTanda}</h1>
         </span>
         <span style={{textAlign:'right', marginRight:'2em'}}>
-        <Tooltip title={tandaInfo && !tandaInfo.activa ? "Activar Tanda": "Cancelar Tanda"}>
-          <Button shape="circle" icon={estatusIcon } style={{margin:'5px'}} onClick={tandaOnOff} /> 
-        </Tooltip>
-        <Link to={`/administrar-tanda/editar-tanda/${match.params.id}`}>
-          <Tooltip title='Editar Tanda'>
-            <Button shape="circle" icon={<EditOutlined />} style={{margin:'5px'}} /> 
+          <Tooltip title={tandaInfo && !tandaInfo.activa ? "Activar Tanda": "Cancelar Tanda"}>
+            <Button shape="circle" icon={estatusIcon } style={{margin:'5px'}} onClick={tandaOnOff} /> 
           </Tooltip>
-        </Link>
-      </span>
+          <Link to={`/administrar-tanda/editar-tanda/${match.params.id}`}>
+            <Tooltip title='Editar Tanda'>
+              <Button shape="circle" icon={<EditOutlined />} style={{margin:'5px'}} /> 
+            </Tooltip>
+          </Link>
+        </span>
       
       <div style={{ display: 'flex', justifyContent:'center'}}>
         

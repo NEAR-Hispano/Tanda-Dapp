@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Select } from 'antd';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 const { Option } = Select;
 
@@ -11,7 +12,7 @@ export const PeriodosLista = ({tanda, setTurno}) => {
     useEffect(
         () => {
             if (window.walletConnection.isSignedIn()) {
-                window.contract.consultarPeriodos({key: tanda.id})
+                window.contract.consultarPeriodos({key: tanda.id}, BOATLOAD_OF_GAS)
                 .then(listaPeriodos => { setPeriodos(listaPeriodos)})
             }
         },

@@ -2,12 +2,13 @@ import React from 'react';
 import CardList from '../components/CardList';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 class BuscarTandas extends React.Component {
 
   constructor() {
     var tandasArray = [];
-    window.contract.consultarTandas({})
+    window.contract.consultarTandas({}, BOATLOAD_OF_GAS)
     .then(listaTandas => {
       listaTandas.map(item => {
         tandasArray.push(item);

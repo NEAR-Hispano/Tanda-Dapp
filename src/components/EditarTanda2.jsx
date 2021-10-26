@@ -1,6 +1,6 @@
 import React from 'react';
 import { Form, Input, Button, Select, Layout } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 import 'antd/dist/antd.css';
 
 const EditarTanda2 = ({match}) => {
@@ -13,7 +13,7 @@ const EditarTanda2 = ({match}) => {
   }
 
   const onSearch = (values) => {
-    window.contract.consultarTanda({ key: values.idTanda }).
+    window.contract.consultarTanda({ key: values.idTanda }, BOATLOAD_OF_GAS).
     then(info => {
       console.log(info)
 
@@ -35,7 +35,7 @@ const EditarTanda2 = ({match}) => {
       integrantes: parseInt(values.numIntegrantes,10).toFixed(),
       monto: `${values.monto}`,
       periodo: '15'
-    }).then(info =>{
+    }, BOATLOAD_OF_GAS).then(info =>{
       console.log(info)
     })
     

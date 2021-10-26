@@ -1,4 +1,5 @@
 import React from 'react';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 const InfoTanda = ({ match }) => {
     const [infoTanda, setInfoTanda] = React.useState({
@@ -15,7 +16,7 @@ const InfoTanda = ({ match }) => {
     React.useEffect(
         () => {
             if (window.walletConnection.isSignedIn()) {
-            window.contract.consultarTanda({ key: match.params.id }).then(info => {
+            window.contract.consultarTanda({ key: match.params.id }, BOATLOAD_OF_GAS).then(info => {
                 console.log(info);
                 setInfoTanda({...infoTanda,
                     activa: info.activa,
