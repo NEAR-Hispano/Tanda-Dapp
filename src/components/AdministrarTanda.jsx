@@ -126,21 +126,26 @@ function AdministrarTanda({ match }) {
     }
   }
 
-  const dataPagos = Object.keys(pagos).map(id => {
-    const children = pagos[id].map((child, index) => {
+  
+  let dataPagos = [];
+  if (pagos) {
+    dataPagos = Object.keys(pagos).map(id => {
+      const children = pagos[id].map((child, index) => {
+        return {
+          title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
+          key: `child_${id}${index}`,
+          icon: <FileDoneOutlined />
+        }
+      })
       return {
-        title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
-        key: `child_${id}${index}`,
-        icon: <FileDoneOutlined />
-      }
+        icon: <UserOutlined />,
+        title: id,
+        key: id,
+        children
+      };
     })
-    return {
-      icon: <UserOutlined />,
-      title: id,
-      key: id,
-      children
-    };
-  })
+  }
+  
 
 
   return (

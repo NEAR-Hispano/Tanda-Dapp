@@ -11,16 +11,6 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
     const [turno, setTurno] = useState();
-    
-    const handleActivar = () =>{
-        setLoading(true);
-        window.contract.cambiarEstadoTanda({key: tanda.id}, BOATLOAD_OF_GAS).then((tandaActualizada) =>{
-            tanda = {...tandaActualizada };
-            setActiva(tanda.activa)
-            setLoading(false);           
-        });
-        
-    }
 
     const [aceptarUnirse, setAceptarUnirse] = useState(false)
 
@@ -84,7 +74,6 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                     <b>Activa: </b> <Tag 
                         icon={activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} 
                         color={activa ? "success" : "default"} 
-                        onClick={origen === 'administrar-tandas' ? handleActivar : null} 
                         style={{ cursor: 'pointer' }}>
                             {activa? 'Activa': 'Inactiva'}</Tag><br/>
                     <b>Periodo: </b> {Periodos[tanda.periodo]} <br/>
