@@ -5,8 +5,7 @@ import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
 import { Periodos } from './../utils/enums';
 import { UnirseATanda } from './UnirseATanda';
 import {PeriodosLista} from './PeriodosLista';
-
-const { Option } = Select;
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
@@ -15,7 +14,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     
     const handleActivar = () =>{
         setLoading(true);
-        window.contract.cambiarEstadoTanda({key: tanda.id}).then((tandaActualizada) =>{
+        window.contract.cambiarEstadoTanda({key: tanda.id}, BOATLOAD_OF_GAS).then((tandaActualizada) =>{
             tanda = {...tandaActualizada };
             setActiva(tanda.activa)
             setLoading(false);           
@@ -40,7 +39,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const unirATanda = () => {
 
         try{
-            window.contract.agregarIntegrante({key: tanda.id})
+            window.contract.agregarIntegrante({key: tanda.id}, BOATLOAD_OF_GAS)
             .then(() => {setUnido(true)})
         }
         catch (e) {
@@ -60,7 +59,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     useEffect(
         () => {
             if (window.walletConnection.isSignedIn() && unido==true) {
-                window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`})
+                window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`}, BOATLOAD_OF_GAS)
                 .then(() => {setLoading(false)})
             }
         },
@@ -69,7 +68,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
 
     const handleModal = () => {
         let integrantes = [];
-        window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
+        window.contract.consultarIntegrantes({key: tanda.id}, BOATLOAD_OF_GAS).then(response => {
             integrantes = response;
         });
 

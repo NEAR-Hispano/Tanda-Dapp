@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { utils } from 'near-api-js'
 import { Layout } from 'antd';
-
-const BOATLOAD_OF_GAS = 300000000000000;
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 export default function ProcesarPago({match}){
 
@@ -13,7 +12,7 @@ export default function ProcesarPago({match}){
             const a = localStorage.getItem('pagado')
             if(a == 'false'){
                 localStorage.setItem('pagado',true)
-                window.contract.consultarTanda({ key: match.params.id }).
+                window.contract.consultarTanda({ key: match.params.id }, BOATLOAD_OF_GAS).
                 then(info => {
                     setTanda(info)
                 })

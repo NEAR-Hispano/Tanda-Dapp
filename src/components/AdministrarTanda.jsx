@@ -24,22 +24,22 @@ function AdministrarTanda({ match }) {
   useEffect(
     () => {
         if (window.walletConnection.isSignedIn()) {
-          window.contract.consultarTanda({key: match.params.id})
+          window.contract.consultarTanda({key: match.params.id}, BOATLOAD_OF_GAS)
           .then(info => { 
             setTandaInfo(info)
             setNombretanda(info.nombre)
           })
           
-          window.contract.consultarIntegrantes({key: match.params.id})
+          window.contract.consultarIntegrantes({key: match.params.id}, BOATLOAD_OF_GAS)
           .then(info => {
             setIntegrantesTanda(info)
           })
 
-          window.contract.consultarPagos().then(data => {
+          window.contract.consultarPagos({}, BOATLOAD_OF_GAS).then(data => {
             setPagos(data)
           })
 
-          window.contract.generarPeriodos({key: match.params.id}).then(periodosLista => {
+          window.contract.generarPeriodos({key: match.params.id}, BOATLOAD_OF_GAS).then(periodosLista => {
             if(periodosLista){
               const data = periodosLista.map((elemento, index) => { 
                   return `Turno ${index+1}: Del ${elemento.inicio} al ${elemento.final}`

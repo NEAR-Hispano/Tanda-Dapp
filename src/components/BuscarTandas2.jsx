@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TandaCardMap } from './TandaCardMap';
 import { TandaCardMapSkeleton } from './TandaCardMapSkeleton'
 import { SearchOutlined } from '@ant-design/icons';
-import { Input, Button } from 'antd';
+import { Input } from 'antd';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 //Recibimos un parámetro para ver desde donde se llamó la función.
 function BuscarTandas2({origen}){
@@ -23,17 +24,17 @@ function BuscarTandas2({origen}){
                 //Si es de la vista principal, va a mostrar toda las tandas.
                 if(origen === 'principal'){
                     //Llamamos al contrato para consultar las Tandas existentes
-                    window.contract.consultarTandas({})
+                    window.contract.consultarTandas({}, BOATLOAD_OF_GAS)
                     //Y actualizamos el estado
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: false})})
                 }
                 //Si es de la vista de Mis Tandas, solo mostramos nuestras tandas.
                 else if (origen === 'mis-tandas'){
-                    window.contract.consultarTandasInscritas({})
+                    window.contract.consultarTandasInscritas({}, BOATLOAD_OF_GAS)
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
                 }
                 else if (origen === 'administrar-tandas'){
-                    window.contract.consultarTandasCreadas({})
+                    window.contract.consultarTandasCreadas({}, BOATLOAD_OF_GAS)
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
                 }
                 
