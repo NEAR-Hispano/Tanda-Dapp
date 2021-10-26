@@ -1,46 +1,43 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Button, Tag, Spin } from 'antd';
-import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
-import { Periodos } from '../utils/enums';
-import moment from 'moment';
+import React, { useState } from 'react';
+import { utils } from 'near-api-js'
+import { Modal, Button } from 'antd';
+import { StopOutlined } from '@ant-design/icons';
 
-export const TandaPagoModal = ({tanda, setActiva, activa}) => {
+
+export const TandaPagoModal = ({tanda}) => {
     const [modal, contextHolder] = Modal.useModal();
-    const [loading, setLoading] = useState(false);
-    
-    console.log('FECHA', moment().format('YYYY-MM-DD'));
-    const handleActivar = () =>{
-        setLoading(true);
-        window.contract.cambiarEstadoTanda({key: tanda.id}).then((tandaActualizada) =>{
-            tanda = {...tandaActualizada };
-            setActiva(tanda.activa)
-            setLoading(false);           
-        });
-        
-    }
 
     const handleModal = () => {
-        let integrantes = [];
-        window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
-            integrantes = response;
-        });
-
-        const config = {
-            title: `${tanda.nombre}`,
-            content: (
-                <>
-                <Spin spinning={loading} delay={500}>
-                    <b>Integrante hahahs:</b> {integrantes.length}/{tanda.numIntegrantes} <br/>
-                    <b>Monto:</b> {tanda.monto} <br/>
-                    <b>Fecha Inicio:</b> {tanda.fechaInicio} <br/>
-                    <b>Fecha Fin:</b> {tanda.fechaFinal} <br/>
-                    <b>Activa:</b> <Tag icon={activa ? <CheckCircleOutlined />: <MinusCircleOutlined />} color={activa ? "success" : "warning"} onClick={handleActivar}>{activa? 'Activa': 'Pendiente'}</Tag><br/>
-                    <b>Periodo:</b> {Periodos[tanda.periodo]} <br/>
-                </Spin>  
-                </>
-            ),
-        };
-        modal.confirm(config);
+        if (tanda.activa) {
+            const config = {
+                title: `${tanda.nombre}`,
+                content: (
+                    <>
+                        <b> ES NECESARIO AUTORIZAR SU PAGO POR {tanda.monto} NEAR. </b> <br/>
+                        Presiona OK para continuar...
+                    </>
+                ),
+                onOk() { // Si el boton de OK es presionado
+                    localStorage.setItem('pagado',false)
+                    window.open(`/pagar-tanda/${tanda.id}`)
+                },
+                onCancel() { // Si el boton de Cancelar es presionado
+                },
+            };      
+            modal.success(config);
+            
+        } else {
+            const config = {
+                title: `${tanda.nombre}`,
+                content: (
+                    <>
+                        <StopOutlined style={{ fontSize: '100px', color: '#900C3F', marginLeft: '30%'}} /> <br/><br/>
+                        <b> AÚN NO SE PUEDE REALIZAR EL PAGO DE LA TANDA, YA QUE SE ENCUENTRA INACTIVA</b> <br/>
+                    </>
+                ),
+            };
+            modal.error(config);
+        }
     }
 
     return (
@@ -51,3 +48,5 @@ export const TandaPagoModal = ({tanda, setActiva, activa}) => {
         </>
     )
 }
+
+

@@ -1,5 +1,6 @@
-import { context, u128, PersistentMap, PersistentVector, math, logging, PersistentUnorderedMap } from "near-sdk-as";
+import { context, u128, PersistentMap, PersistentVector, datetime, logging, PersistentUnorderedMap } from "near-sdk-as";
 import { AccountId, MAX_PAGE_SIZE, Money, Periodo } from "../assembly/utils";
+import { Duration } from 'assemblyscript-temporal';
 
 @nearBindgen
 export class Tanda {
@@ -12,6 +13,7 @@ export class Tanda {
     fechaFinal: string;
     activa: bool;
     periodo: u64;
+    estado: string;
     integrantes: PersistentVector<Integrante>;
     
     constructor(nombre: string, numIntegrantes:  u64, monto: u64, periodo: u64){
@@ -20,9 +22,12 @@ export class Tanda {
         this.numIntegrantes = numIntegrantes;
         this.monto = monto;
         this.activa = false;
+        this.estado = 'Pendiente';
         this.periodo = periodo;
         this.integrantes = new PersistentVector<Integrante>(`${context.blockIndex}`);
         this.creador = context.sender;
+        this.fechaInicio = datetime.block_datetime().toString().split('T')[0];
+        this.fechaFinal = datetime.block_datetime().add(new Duration(0,0,0,<i32>(numIntegrantes * periodo) -1)).toString().split('T')[0];
     }
 
     agregarIntegrante(integrante: Integrante): void{

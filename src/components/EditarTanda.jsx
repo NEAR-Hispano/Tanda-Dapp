@@ -3,6 +3,7 @@ import { Form, Input, Button, Select, Layout, DatePicker } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import 'antd/dist/antd.css';
 import moment from 'moment';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 const EditarTanda = () => {
   const [editarTandaForm] = Form.useForm();
@@ -40,7 +41,7 @@ const EditarTanda = () => {
       periodo: '15',
       fechaInicio: substraerFecha(values.fechaInicio),
       fechaFin: substraerFecha(values.fechaFin),
-    }).then(info =>{
+    }, BOATLOAD_OF_GAS ).then(info =>{
       console.log(info)
     })
     

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Form, Input, Button, Select } from 'antd';
 import 'antd/dist/antd.css';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 //Componentes
 import Notificacion from './Notificacion';
@@ -35,7 +36,7 @@ const CrearTanda = () => {
                     integrantes: `${values.numIntegrantes}`,
                     monto: `${values.monto}`,
                     periodo: 15
-                })
+                }, BOATLOAD_OF_GAS)
                 //después de todo esto, comenzaremos a cambiar la forma
                 .then(() => {
                     // Mostraremos la notificación

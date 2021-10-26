@@ -1,9 +1,9 @@
 import React from 'react';
 import { Form, Input, Button, Select, Layout } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 import 'antd/dist/antd.css';
 
-const EditarTanda2 = () => {
+const EditarTanda2 = ({match}) => {
   const [editarTandaForm] = Form.useForm();
   const [key, setKey] = React.useState();
 
@@ -28,13 +28,14 @@ const EditarTanda2 = () => {
 
   const onFinish = (values) => {
 
+    console.log('TANDA ID: ', match.params.id);
     window.contract.editarTanda({ 
-      key: key.toString(),
+      key: `${match.params.id}`.toString(),
       nombreTanda: values.nombreTanda,
-      integrantes: parseInt(values.numIntegrantes,10),
+      integrantes: parseInt(values.numIntegrantes,10).toFixed(),
       monto: `${values.monto}`,
       periodo: '15'
-    }).then(info =>{
+    }, BOATLOAD_OF_GAS).then(info =>{
       console.log(info)
     })
     

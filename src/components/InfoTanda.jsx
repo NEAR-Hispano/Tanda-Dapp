@@ -1,4 +1,5 @@
 import React from 'react';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 const InfoTanda = ({ match }) => {
     const [infoTanda, setInfoTanda] = React.useState({

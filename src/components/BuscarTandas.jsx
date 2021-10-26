@@ -2,6 +2,7 @@ import React from 'react';
 import CardList from '../components/CardList';
 import SearchBox from '../components/SearchBox';
 import Scroll from '../components/Scroll';
+import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 class BuscarTandas extends React.Component {
 

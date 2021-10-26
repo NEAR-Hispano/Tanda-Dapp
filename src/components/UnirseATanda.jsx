@@ -1,33 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Modal, Button, Tag, Spin } from 'antd';
-import {  CheckCircleOutlined, MinusCircleOutlined } from '@ant-design/icons';
-import { Periodos } from './../utils/enums';
 
-export const UnirseATanda = ({tanda}) => {
+import React, { useState } from 'react';
+import { Modal, Button } from 'antd';
+
+export const UnirseATanda = ({tanda, setAceptarUnirse}) => {
     const [modal, contextHolder] = Modal.useModal();
-    const [loading, setLoading] = useState(false);
 
-    const unirATanda = () => {
-        setLoading(true)
-
-        try{
-            window.contract.agregarIntegrante({key: tanda.id})
-            .then(() => {setLoading(false)})
-        }
-        catch (e) {
-            //Mandamos una alerta.
-            //Por lo general, con que cierres tu sesión y la vuelvas a abrir se arregla.
-            alert(
-              '¡Algo salió mal! ' +
-              '¿Talvez reinicia tu sesión? ' +
-              'Revisa la consola para más información!!'
-            )
-            //Y lanzamos el error
-            throw e
-        }
-        
-    }
+    const [cargando, setCargando] = useState(false);
 
     const handleModal = () => {
         const config = {
@@ -39,7 +17,7 @@ export const UnirseATanda = ({tanda}) => {
                     tanda no puede eliminar usuarios ni cancelar la Tanda.
                 </p>
                 <p>
-                    Al unirte, aceptas que enviarás {tanda.monto} cada {tanda.periodo} días,
+                    Al unirte, aceptas que enviarás {tanda.monto} NEAR cada {tanda.periodo} días,
                     siendo puntual en tus pagos.
                 </p>
                 <br/>
@@ -49,7 +27,8 @@ export const UnirseATanda = ({tanda}) => {
                 </>
             ),
             onOk() {
-                unirATanda(tanda);
+                setCargando(true)
+                setAceptarUnirse(true);
             },
             onCancel() {
             },
@@ -60,7 +39,7 @@ export const UnirseATanda = ({tanda}) => {
 
     return (
         <>      
-            <Button type="primary" onClick={handleModal} loading={loading}>Unirse</Button>
+            <Button type="primary" onClick={handleModal} loading={cargando}>Unirse</Button>
             {/* `contextHolder` should always under the context you want to access */}
             {contextHolder}
         </>

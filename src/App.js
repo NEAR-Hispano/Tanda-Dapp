@@ -11,6 +11,7 @@ import { PieDePagina } from './components/PieDePagina';
 import EditarTanda2 from './components/EditarTanda2';
 import Principal from './components/Principal';
 import AdministrarTanda from './components/AdministrarTanda';
+import ProcesarPago from './components/ProcesarPago'
 
 export default function App() {
   
@@ -29,6 +30,7 @@ export default function App() {
           <Route exact path="/" component={Principal}/>
           <Route path="/administrar-tanda/editar-tanda/:id" component={EditarTanda2}/>
           <Route path="/administrar-tanda/:id" component={AdministrarTanda}/>
+          <Route path="/pagar-tanda/:id" component={ProcesarPago}/>
         </Switch>
       </div>
       </Router>

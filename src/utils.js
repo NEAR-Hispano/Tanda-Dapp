@@ -23,14 +23,18 @@ export async function initContract() {
     changeMethods: 
       ['crearTanda',
       'editarTanda', 
-      'cambiarEstadoTanda', 
+      'activarTanda', 
+      'cancelarTanda', 
       'consultarTandasPorOwner',
       'agregarIntegrantePago',
       'consultarTandasInscritas',
       'consultarTandasCreadas',
       'agregarIntegrante', 
       'generarPeriodos',
-      'pagarTanda'
+      'pagarTanda',
+      'consultarPeriodos',
+      'escogerTurno',
+      'consultarTandaPagos'
       ],
   })
 }
