@@ -68,7 +68,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
 
     const handleModal = () => {
         let integrantes = [];
-        window.contract.consultarIntegrantes({key: tanda.id}, BOATLOAD_OF_GAS).then(response => {
+        window.contract.consultarIntegrantes({key: tanda.id}).then(response => {
             integrantes = response;
         });
 

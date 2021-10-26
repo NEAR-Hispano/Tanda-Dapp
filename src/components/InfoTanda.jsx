@@ -16,7 +16,7 @@ const InfoTanda = ({ match }) => {
     React.useEffect(
         () => {
             if (window.walletConnection.isSignedIn()) {
-            window.contract.consultarTanda({ key: match.params.id }, BOATLOAD_OF_GAS).then(info => {
+            window.contract.consultarTanda({ key: match.params.id }).then(info => {
                 console.log(info);
                 setInfoTanda({...infoTanda,
                     activa: info.activa,

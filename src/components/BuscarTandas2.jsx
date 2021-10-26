@@ -24,17 +24,17 @@ function BuscarTandas2({origen}){
                 //Si es de la vista principal, va a mostrar toda las tandas.
                 if(origen === 'principal'){
                     //Llamamos al contrato para consultar las Tandas existentes
-                    window.contract.consultarTandas({}, BOATLOAD_OF_GAS)
+                    window.contract.consultarTandas({})
                     //Y actualizamos el estado
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: false})})
                 }
                 //Si es de la vista de Mis Tandas, solo mostramos nuestras tandas.
                 else if (origen === 'mis-tandas'){
-                    window.contract.consultarTandasInscritas({}, BOATLOAD_OF_GAS)
+                    window.contract.consultarTandasInscritas({})
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
                 }
                 else if (origen === 'administrar-tandas'){
-                    window.contract.consultarTandasCreadas({}, BOATLOAD_OF_GAS)
+                    window.contract.consultarTandasCreadas({})
                     .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
                 }
                 

@@ -13,7 +13,7 @@ const EditarTanda2 = ({match}) => {
   }
 
   const onSearch = (values) => {
-    window.contract.consultarTanda({ key: values.idTanda }, BOATLOAD_OF_GAS).
+    window.contract.consultarTanda({ key: values.idTanda }).
     then(info => {
       console.log(info)
 

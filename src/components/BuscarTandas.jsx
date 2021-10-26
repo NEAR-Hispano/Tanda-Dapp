@@ -8,7 +8,7 @@ class BuscarTandas extends React.Component {
 
   constructor() {
     var tandasArray = [];
-    window.contract.consultarTandas({}, BOATLOAD_OF_GAS)
+    window.contract.consultarTandas({})
     .then(listaTandas => {
       listaTandas.map(item => {
         tandasArray.push(item);

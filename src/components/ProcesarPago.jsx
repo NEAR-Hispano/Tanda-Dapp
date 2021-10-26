@@ -12,7 +12,7 @@ export default function ProcesarPago({match}){
             const a = localStorage.getItem('pagado')
             if(a == 'false'){
                 localStorage.setItem('pagado',true)
-                window.contract.consultarTanda({ key: match.params.id }, BOATLOAD_OF_GAS).
+                window.contract.consultarTanda({ key: match.params.id }).
                 then(info => {
                     setTanda(info)
                 })

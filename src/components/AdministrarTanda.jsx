@@ -24,18 +24,18 @@ function AdministrarTanda({ match }) {
   useEffect(
     () => {
         if (window.walletConnection.isSignedIn()) {
-          window.contract.consultarTanda({key: match.params.id}, BOATLOAD_OF_GAS)
+          window.contract.consultarTanda({key: match.params.id})
           .then(info => { 
             setTandaInfo(info)
             setNombretanda(info.nombre)
           })
           
-          window.contract.consultarIntegrantes({key: match.params.id}, BOATLOAD_OF_GAS)
+          window.contract.consultarIntegrantes({key: match.params.id})
           .then(info => {
             setIntegrantesTanda(info)
           })
 
-          window.contract.consultarTandaPagos({key: match.params.id}, BOATLOAD_OF_GAS).then(data => {
+          window.contract.consultarTandaPagos({key: match.params.id}).then(data => {
             console.log('Received data:')
             console.log(data)
             setPagos(data)
