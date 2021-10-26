@@ -6,13 +6,19 @@ import { Periodos } from './../utils/enums';
 import { UnirseATanda } from './UnirseATanda';
 import {PeriodosLista} from './PeriodosLista';
 import { BOATLOAD_OF_GAS } from '../utils/enums';
+import Notificacion from './Notificacion';
 
 export const TandaModal = ({tanda, setActiva, activa, origen}) => {
     const [modal, contextHolder] = Modal.useModal();
     const [loading, setLoading] = useState(false);
     const [turno, setTurno] = useState();
 
+    const [miModal, setMiModal] = useState();
     const [aceptarUnirse, setAceptarUnirse] = useState(false)
+
+    const [notifUnirseATanda, setNotifUnirseATanda] = useState(false)
+
+    let mod = undefined;
 
     useEffect(
         () => {
@@ -50,7 +56,11 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
         () => {
             if (window.walletConnection.isSignedIn() && unido==true) {
                 window.contract.escogerTurno({key: tanda.id, numTurno: `${parseInt(turno)}`}, BOATLOAD_OF_GAS)
-                .then(() => {setLoading(false)})
+                .then(() => {
+                    console.log(`El modal se va a destruir`)
+                    setNotifUnirseATanda(true)
+                    miModal.destroy()
+                })
             }
         },
         [unido]
@@ -93,7 +103,7 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
                 </>
             ),
         };
-        modal.confirm(config);
+        setMiModal(modal.confirm(config))
     }
 
     return (
@@ -101,6 +111,9 @@ export const TandaModal = ({tanda, setActiva, activa, origen}) => {
             <Button type="primary" style={{marginLeft:'12em'}} onClick={handleModal} >Ver más</Button>
             {/* `contextHolder` should always under the context you want to access */}
             {contextHolder}
+
+            {/* Lógica para notificaciones*/}
+            {notifUnirseATanda && <Notificacion metodo='agregarIntegrante'/>}
         </>
     )
 }
