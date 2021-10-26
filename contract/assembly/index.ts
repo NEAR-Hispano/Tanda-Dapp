@@ -850,6 +850,30 @@ export function validarPagoTanda(key: string, indice: i32): bool {
   return false
 }
 
+//Esta función sólo obtiene el índice del último periodo que no se ha pagado
+//Pero no valida si se puede pagar o no.
+export function obtenerPeriodoAPagar(key: string): i32 {
+  //El único dato que pedimos es la clave de la Tanda, si no lo recibimos, envíamos error
+  assert(key != "", "El campo de clave no debe estar vacío.");
+
+  //Validamos que exista la tanda
+  assert(tandas.get(key), `La Tanda ${key} no existe.`)
+
+  //Validamos que tenga sus periodos inicializados
+  assert(tandaPeriodos.get(key), `Los periodos para la Tanda ${key} no están inicializados.`)
+
+  const pers = tandaPeriodos.get(key)
+  if(pers){
+    for(let i = 0; i < pers.length; i++){
+      if(pers[i].tandaPagada == false){
+        return i
+      }
+    }
+  }
+  //Si no encuentra ningun periodo para pagar regresa -1
+  return -1
+}
+
 //Funcion para pagar tanda.
 export function pagarTanda(key: string, indice: i32): bool {
   //Se requiere el indice porque la estructura donde guardamos los periodos es un arreglo.
