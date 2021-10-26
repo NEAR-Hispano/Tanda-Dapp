@@ -17,7 +17,7 @@ function AdministrarTanda({ match }) {
   const [tandaInfo, setTandaInfo] = useState();
   const [nombreTanda, setNombretanda] = useState('')
   const [integrantesTanda, setIntegrantesTanda] = useState([]);
-  const [pagos, setPagos] = useState([]);
+  const [pagos, setPagos] = useState({});
   const [periodos, setPeriodos] = useState([]);
   const [estatusIcon, setEstatusIcon] = useState();
 
@@ -35,7 +35,9 @@ function AdministrarTanda({ match }) {
             setIntegrantesTanda(info)
           })
 
-          window.contract.consultarPagos().then(data => {
+          window.contract.consultarTandaPagos({key: match.params.id}).then(data => {
+            console.log('Received data:')
+            console.log(data)
             setPagos(data)
           })
 
@@ -65,19 +67,21 @@ function AdministrarTanda({ match }) {
     [tandaInfo]
   )
 
+
+  useEffect(
+    () => {
+      console.log('Pagos:')
+      console.log(pagos)        
+    },
+    [pagos]
+  )
+
   useEffect(
     () => {
       
       console.log(integrantesTanda)        
     },
     [integrantesTanda]
-  )
-
-  useEffect(
-    () => {
-        console.log(pagos)        
-    },
-    [pagos]
   )
 
   useEffect(
@@ -108,28 +112,23 @@ function AdministrarTanda({ match }) {
       });
     }
   }
-  
 
-  const dataPagos = pagos.map(item => {
-    const integrantesId = Object.keys(item.value); 
-    return integrantesId.map((id) => {
-      const children = item.value[id].map((child, index) => {
-        return {
-          title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
-          key: `child_${id}${index}`,
-          icon: <FileDoneOutlined />
-        }
-      });
-
+  const dataPagos = Object.keys(pagos).map(id => {
+    const children = pagos[id].map((child, index) => {
       return {
-        icon: <UserOutlined />,
-        title: id,
-        key: id,
-        children
-      };
-    });
-    
-  });
+        title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
+        key: `child_${id}${index}`,
+        icon: <FileDoneOutlined />
+      }
+    })
+    return {
+      icon: <UserOutlined />,
+      title: id,
+      key: id,
+      children
+    };
+  })
+
 
   return (
     <>
@@ -163,7 +162,7 @@ function AdministrarTanda({ match }) {
             <List.Item>
               <Tree
                 showIcon
-                treeData={dataPagos[0]}
+                treeData={dataPagos}
                 defaultExpandAll 
               />,
             </List.Item>
