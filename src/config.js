@@ -1,4 +1,4 @@
-const CONTRACT_NAME = process.env.CONTRACT_NAME ||'tanda-dapp'
+const CONTRACT_NAME = 'tandaprueba.testnet'
 
 function getConfig(env) {
   switch (env) {
