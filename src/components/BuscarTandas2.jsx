@@ -3,7 +3,6 @@ import { TandaCardMap } from './TandaCardMap';
 import { TandaCardMapSkeleton } from './TandaCardMapSkeleton'
 import { SearchOutlined } from '@ant-design/icons';
 import { Input } from 'antd';
-import { BOATLOAD_OF_GAS } from '../utils/enums';
 
 //Recibimos un parámetro para ver desde donde se llamó la función.
 function BuscarTandas2({origen}){
@@ -26,16 +25,29 @@ function BuscarTandas2({origen}){
                     //Llamamos al contrato para consultar las Tandas existentes
                     window.contract.consultarTandas({})
                     //Y actualizamos el estado
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: false})})
+                    .then(listaTandas => { 
+                        setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: false})
+                        //UseEffect para mostrar el esqueleto
+                        setTandasCargadas(listaTandas.length)
+                    })
                 }
                 //Si es de la vista de Mis Tandas, solo mostramos nuestras tandas.
                 else if (origen === 'mis-tandas'){
                     window.contract.consultarTandasInscritas({})
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})})
+                    .then(listaTandas => { 
+                        setTandaInfo({...tandaInfo, tandas: listaTandas, misTandas: true})
+                        //UseEffect para mostrar el esqueleto
+                        setTandasCargadas(listaTandas.length)
+                        
+                })
                 }
                 else if (origen === 'administrar-tandas'){
                     window.contract.consultarTandasCreadas({})
-                    .then(listaTandas => { setTandaInfo({...tandaInfo, tandas: listaTandas})})
+                    .then(listaTandas => { 
+                        setTandaInfo({...tandaInfo, tandas: listaTandas})
+                        //UseEffect para mostrar el esqueleto
+                        setTandasCargadas(listaTandas.length)
+                    })
                 }
                 
             }
@@ -53,19 +65,9 @@ function BuscarTandas2({origen}){
         },
         //Esto es lo que indica que se ejecutará cada que cambie la búsqueda
         [tandaInfo.campoBusqueda]
-    )
+    )    
 
-    //UseEffect para mostrar el esqueleto
-    useEffect(
-        () => {
-            if(tandaInfo.tandas.length > 0){
-                setTandasCargadas(true)
-            }
-        },
-        [tandaInfo.tandas]
-    )
-
-    const [tandasCargadas, setTandasCargadas] = useState(false)
+    const [tandasCargadas, setTandasCargadas] = useState(-1)
 
     //Función que pasamos al Input, se ejecuta cada que su contenido cambia
     const onSearchChange = (event) => {
@@ -86,8 +88,11 @@ function BuscarTandas2({origen}){
           * Pero si no, entonces significa que hay tandas filtradas, y mandamos ese arreglo.
           * Todo esto es para que nos muestre todas las tandas si no hemos buscado nada.*/}
         {
-            tandasCargadas ? <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} /> :
-            <TandaCardMapSkeleton />
+            tandasCargadas < 0 ? 
+                <TandaCardMapSkeleton /> : 
+                tandasCargadas == 0 ? 
+                    <h2><br/>No hay registros</h2> : 
+                    <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} /> 
         }
         {/* <TandaCardMap origen={origen} tandas={tandaInfo.campoBusqueda === '' ? tandaInfo.tandas : tandasFiltradas} /> */}
         </>

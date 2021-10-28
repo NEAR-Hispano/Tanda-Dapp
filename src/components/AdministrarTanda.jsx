@@ -12,6 +12,8 @@ import {
 import { Link } from 'react-router-dom';
 import { ONE_NEAR, BOATLOAD_OF_GAS } from '../utils/enums';
 
+import Notificacion from './Notificacion';
+
 function AdministrarTanda({ match }) {
 
   const [tandaInfo, setTandaInfo] = useState();
@@ -20,6 +22,10 @@ function AdministrarTanda({ match }) {
   const [pagos, setPagos] = useState({});
   const [periodos, setPeriodos] = useState([]);
   const [estatusIcon, setEstatusIcon] = useState();
+
+  const [periodoAPagar, setPeriodoAPagar] = useState(-2);
+  const [mostrarNotificacion, setMostrarNotificacion] = useState(false)
+  const [pagarLoading, setPagarLoading] = useState(false)
 
   useEffect(
     () => {
@@ -125,23 +131,59 @@ function AdministrarTanda({ match }) {
       });
     }
   }
-
-  const dataPagos = Object.keys(pagos).map(id => {
-    const children = pagos[id].map((child, index) => {
+  
+  let dataPagos = [];
+  if (pagos) {
+    dataPagos = Object.keys(pagos).map(id => {
+      const children = pagos[id].map((child, index) => {
+        return {
+          title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
+          key: `child_${id}${index}`,
+          icon: <FileDoneOutlined />
+        }
+      })
       return {
-        title: `${child.fechaPago} | ${child.monto/ONE_NEAR} NEAR`,
-        key: `child_${id}${index}`,
-        icon: <FileDoneOutlined />
-      }
+        icon: <UserOutlined />,
+        title: id,
+        key: id,
+        children
+      };
     })
-    return {
-      icon: <UserOutlined />,
-      title: id,
-      key: id,
-      children
-    };
-  })
+  }
+  
+  const pagarTanda = () => {
+    setPagarLoading(true)
+    window.contract.obtenerPeriodoAPagar({key: tandaInfo.id}).
+    then(periodo => {
+      setPeriodoAPagar(periodo)
+    })
+  }
 
+  useEffect(
+    () => {
+
+      if(periodoAPagar == -1){
+        openNotificationWithIcon('error', `No se pudo pagar la Tanda: ${tandaInfo.nombre}`, 'Esta Tanda ya fue pagada en su totalidad.');
+      }
+      else if(periodoAPagar == -2){
+        console.log('Validando pago de Tanda...')
+      }
+      else if(periodoAPagar >= 0){
+        window.contract.pagarTanda({key: tandaInfo.id, indice: periodoAPagar}).
+            then(() => {
+              setMostrarNotificacion(true)
+            }).catch((error) => {
+              const errorResponse = {...error};
+              openNotificationWithIcon('error', `No se pudo pagar la Tanda: ${tandaInfo.nombre}`, errorResponse.kind.ExecutionError.split(', filename:')[0]);
+            })
+      }
+      else{
+        console.log('El periodo es:' + periodoAPagar)
+      }
+      setPagarLoading(false)
+    },
+    [periodoAPagar]
+  )
 
   return (
     <>
@@ -194,8 +236,10 @@ function AdministrarTanda({ match }) {
           )}
         />  
         
-      </div><br/>   
+      </div><br/>
+      <Button type="primary" onClick={pagarTanda} disabled={pagarLoading} loading={pagarLoading}>Pagar Tanda</Button>  
     </Layout>
+    {mostrarNotificacion && <Notificacion metodo='pagarTanda'/>}
     </>
   );
 }
