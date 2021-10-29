@@ -1,5 +1,5 @@
-const CONTRACT_NAME = process.env.CONTRACT_NAME ||'tanda-dapp'
-
+const CONTRACT_NAME = process.env.CONTRACT_NAME || 'tandaprueba.testnet'
+//process.env.CONTRACT_NAME ||
 function getConfig(env) {
   switch (env) {
 

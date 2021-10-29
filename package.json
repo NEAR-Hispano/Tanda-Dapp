@@ -1,8 +1,10 @@
 {
+  "homepage": "https://NEAR-Hispano.github.io/Tanda-Dapp/",
   "name": "tanda-dapp",
   "version": "0.1.0",
   "license": "UNLICENSED",
   "scripts": {
+    "predeploy": "npm run build",
     "build": "npm run build:contract && npm run build:web",
     "build:contract": "node contract/compile.js",
     "build:contract:debug": "node contract/compile.js --debug",
