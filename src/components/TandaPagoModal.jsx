@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import { utils } from 'near-api-js'
+import React from 'react';
 import { Modal, Button } from 'antd';
 import { StopOutlined } from '@ant-design/icons';
 
@@ -18,7 +17,7 @@ export const TandaPagoModal = ({tanda}) => {
                     </>
                 ),
                 onOk() { // Si el boton de OK es presionado
-                    localStorage.setItem('pagado',false)
+                    localStorage.setItem('pagado', false)
                     window.open(`/pagar-tanda/${tanda.id}`)
                 },
                 onCancel() { // Si el boton de Cancelar es presionado

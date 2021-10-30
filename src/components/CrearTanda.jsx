@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Select } from 'antd';
+import { utils } from 'near-api-js';
+import { Form, Input, Button, Select, Tag } from 'antd';
 import 'antd/dist/antd.css';
 import { BOATLOAD_OF_GAS } from '../utils/enums';
 
@@ -36,7 +37,9 @@ const CrearTanda = () => {
                     integrantes: `${values.numIntegrantes}`,
                     monto: `${values.monto}`,
                     periodo: 15
-                }, BOATLOAD_OF_GAS)
+                }, 
+                BOATLOAD_OF_GAS,
+                utils.format.parseNearAmount('1'))// Cobro estatico de 1 NEAR
                 //después de todo esto, comenzaremos a cambiar la forma
                 .then(() => {
                     // Mostraremos la notificación
@@ -85,6 +88,7 @@ const CrearTanda = () => {
               * Además, para controlar si están habilitadas o no, en la propiedad disabled
               * enviamos el valor del Hook cargandoForma.
               */}
+            <Tag color="magenta">*Aviso: La creación de una Tanda requiere del pago de 1 NEAR</Tag> <br/><br/>
             <Form.Item label="Nombre Tanda" name="nombreTanda"
                 rules={[{
                     required: true,
