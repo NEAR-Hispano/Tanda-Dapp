@@ -18,6 +18,9 @@ export function crearTanda(nombreTanda: string, integrantes:  u64, monto: u64, p
   
   //Validamos que los parámetros enviados sean correctos
 
+  //Cobro por pago de TANDA.
+  assert(context.attachedDeposit >= ONE_NEAR, `Se requiere un pago de al menos 1 NEAR para la creación de la Tanda.`)
+
   /* Tecnicamente podría ir vacío, no hay ningún método que requiera el nombre.
    * Sin embargo, dado a que esto será mostrado al usuario, es mejor que 
    * desde el inicio se tenga asignado el nombre.

@@ -1,14 +1,14 @@
 import { connect, Contract, keyStores, WalletConnection } from 'near-api-js'
 import getConfig from './config'
 
-//const nearConfig = getConfig(process.env.NODE_ENV || 'development')
+const nearConfig = getConfig(process.env.NODE_ENV || 'mainnet')
 
-const nearConfig = {
-  networkId: 'testnet',
-  nodeUrl: 'https://rpc.testnet.nearprotocol.com',
-  contractName: 'tandaprueba.testnet',
-  walletUrl: 'https://wallet.testnet.near.org',
-};
+// const nearConfig = {
+//   networkId: 'testnet',
+//   nodeUrl: 'https://rpc.testnet.nearprotocol.com',
+//   contractName: 'tandaprueba.testnet',
+//   walletUrl: 'https://wallet.testnet.near.org',
+// };
 
 // Initialize contract & set global variables
 export async function initContract() {
